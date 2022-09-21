@@ -19,6 +19,7 @@ int main(int argc, char **argv) {
   printf("my_server state %d\n", my_server->state);
 
   tju_tcp_t* new_conn = tju_accept(my_server);
+  printf("----------------- 新的已经完成 ----------------------\n");
   printf("new_conn state %d\n", new_conn->state);      
 
   // uint32_t conn_ip;
@@ -35,7 +36,6 @@ int main(int argc, char **argv) {
 
   sleep(5);
 
-  printf("send to Client\n");
   tju_send(new_conn, "hello world", 12);
   tju_send(new_conn, "hello tju", 10);
 

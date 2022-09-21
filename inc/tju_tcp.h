@@ -58,7 +58,8 @@ int tju_handle_packet(tju_tcp_t* sock, char* pkt);
 sock_queue* q_init();
 int q_size(sock_queue*q);
 tju_tcp_t* q_pop(sock_queue * q);
-int q_push(sock_queue *q, tju_tcp_t sock);
+int q_push(sock_queue *q, tju_tcp_t* sock);
 
+void q_print(sock_queue *q);
 #endif
 

@@ -10,7 +10,6 @@ tju_packet_t* create_packet(uint16_t src, uint16_t dst, uint32_t seq,
                             uint32_t ack, uint16_t hlen, uint16_t plen, uint8_t flags, 
                             uint16_t adv_window, uint8_t ext, char* data, int len){
 
-  printf("Enter Packet Creation\n");
   tju_packet_t* new = malloc(sizeof(tju_packet_t));
 
   new->header.source_port = src;
@@ -51,7 +50,6 @@ char* create_packet_buf(uint16_t src, uint16_t dst, uint32_t seq, uint32_t ack,
 
   final = packet_to_buf(temp);
 
-  printf("msg to send: >%s<\n",final);
   free_packet(temp);
   return final;
 }
@@ -204,10 +202,10 @@ char* packet_to_buf(tju_packet_t* p){
 
 //helper
 void print_tju_packet(tju_packet_t p){
-  printf("\t=== Packet Header ===\n");
-  printf("src: %d, dst: %d, \nseq: %d, ack: %d, \nhead len: %d, plen: %d, \nflags: %d, advertised_window: %d\n",p.header.source_port,p.header.destination_port,p.header.seq_num,p.header.ack_num,p.header.hlen,p.header.plen,p.header.flags,p.header.advertised_window);
-  printf("\t=== Packet ===\n");
-  printf("data: >%s<\n",p.data);
-  printf("\t=== Packet print Over===\n");
+  printf("\n\t========= Packet Header ========\n");
+  printf("\tsrc: %d, dst: %d, \n\tseq: %d, ack: %d, \n\thead len: %d, plen: %d, \n\tflags: %d, advertised_window: %d\n",p.header.source_port,p.header.destination_port,p.header.seq_num,p.header.ack_num,p.header.hlen,p.header.plen,p.header.flags,p.header.advertised_window);
+  printf("\t========== Packet =========\n");
+  printf("\t==== data: >%s< ====\n",p.data);
+  printf("\t======= Packet print Over ====\n\n");
 }
 

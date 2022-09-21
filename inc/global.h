@@ -53,8 +53,8 @@
 #define TCP_RECVWN_SIZE 32*MAX_DLEN // 比如最多放32个满载数据包
 
 // seq start for CLINET and SERVER
-#define CLIENT_ISN 233
-#define SERVER_ISN 2333
+#define CLIENT_ISN 0
+#define SERVER_ISN 0
 
 // 定义 flags
 #define SYN_FLAG 1

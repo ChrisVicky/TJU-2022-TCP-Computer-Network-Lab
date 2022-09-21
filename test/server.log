@@ -1,0 +1,8 @@
+[服务端] 收到一个TCP数据包
+[服务端] 客户端发送的第一个SYN报文检验通过
+{{GET SYN SCORE}}
+[服务端] 发送SYNACK 等待客户端第三次握手的ACK
+[服务端] 收到一个TCP数据包
+[服务端] 客户端发送的ACK报文检验通过, 成功建立连接
+{{GET ACK SCORE}}
+{{TEST SUCCESS}}
