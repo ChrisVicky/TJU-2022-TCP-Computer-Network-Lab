@@ -15,10 +15,26 @@
 #include <sys/select.h>
 #include <arpa/inet.h>
 
+#include "trace.h"
+#include "tree.h"
+#include "debug.h"
+
 // 单位是byte
 #define SIZE32 4
 #define SIZE16 2
 #define SIZE8  1
+
+#define INIT_SERVER_SEQ 300
+#define INIT_CLIENT_SEQ 100
+
+//RTT CALCULATION
+#define RTT_ALPHA 0.125
+#define RTT_BETA 0.25
+#define INIT_RTT 0.05
+#define RTT_UBOUND 60
+#define RTT_LBOUND 0.05
+
+#define INIT_WINDOW_SIZE 50
 
 // 一些Flag
 #define NO_FLAG 0
@@ -67,19 +83,14 @@
 // TCP 发送窗口
 // 注释的内容如果想用就可以用 不想用就删掉 仅仅提供思路和灵感
 typedef struct {
-	uint16_t window_size;
-
-//   uint32_t base;
-//   uint32_t nextseq;
-//   uint32_t estmated_rtt;
-//   int ack_cnt;
-//   pthread_mutex_t ack_cnt_lock;
-//   struct timeval send_time;
-//   struct timeval timeout;
-//   uint16_t rwnd; 
-//   int congestion_status;
-//   uint16_t cwnd; 
-//   uint16_t ssthresh; 
+  uint32_t window_size;
+  uint32_t seq;
+  uint32_t base;
+  uint32_t nextseq;
+  uint32_t prev_ack;
+  uint32_t prev_ack_count; // 记录冗余 ack 
+  double estmated_rtt;
+  double rto;
 } sender_window_t;
 
 // TCP 接受窗口
@@ -90,7 +101,8 @@ typedef struct {
 //   received_packet_t* head;
 //   char buf[TCP_RECVWN_SIZE];
 //   uint8_t marked[TCP_RECVWN_SIZE];
-//   uint32_t expect_seq;
+  uint32_t expect_seq;
+  myTree* buff_tree;
 } receiver_window_t;
 
 // TCP 窗口 每个建立了连接的TCP都包括发送和接受两个窗口
@@ -118,29 +130,28 @@ typedef struct {
 	pthread_mutex_t send_lock; // 发送数据锁
 	char* sending_buf; // 发送数据缓存区
 	int sending_len; // 发送数据缓存长度
+  struct myQueue* sending_queue;
 
 	pthread_mutex_t recv_lock; // 接收数据锁
+  char* received_hdr_buf; // 接收的头部缓冲区
+  int received_hdr_len; // 头部缓冲区长度
 	char* received_buf; // 接收数据缓存区
 	int received_len; // 接收数据缓存长度
+  
+  int curr_data_buf_len; // 当前数据缓冲区中数据长度
+  char* curr_able_data_buf_point; // 数据buff中第一个空位置
+  char* curr_able_hdr_buf_point; // 头部 buff 第一个空位置
 
 	pthread_cond_t wait_cond; // 可以被用来唤醒recv函数调用时等待的线程
 
 	window_t window; // 发送和接受窗口
 
-  struct sock_queue *half_queue;
-  struct sock_queue *full_queue;
+  uint32_t seq; // 序号，发送完后立刻增加
+  uint32_t ack; // 发送是直接使用
+
+  struct myQueue *half_queue;
+  struct myQueue *full_queue;
 } tju_tcp_t;
 
-// 定义了一个队列 --> 用来装载各种一半/全连接
-typedef struct sock_node{
-  tju_tcp_t *sock;
-  struct sock_node *next;
-}sock_node;
-
-typedef struct sock_queue{
-  struct sock_node *sock_head;  // 队列本身，需要使用 malloc 和 realloc 进行分配（记得要进行free）
-  struct sock_node *sock_end;
-  int len; // 队列长度
-}sock_queue; 
 
 #endif

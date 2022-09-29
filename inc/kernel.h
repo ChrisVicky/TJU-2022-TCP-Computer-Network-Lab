@@ -13,6 +13,26 @@ tju_tcp_t* established_socks[MAX_SOCK];
 // NOTE: 添加了一个端口分配表
 #define MAX_PORT 100000
 int bhash[MAX_PORT];
+
+// NOTE: 定义计时器队列
+typedef struct myTimer{
+  struct timeval when_time_out; // 何时进行发现超时
+  uint32_t seq;
+  uint32_t ack;
+  int data_len;
+  int del_state; // 0:不可删, 1:可删除 (已经收到 ack 可以删除)
+}myTimer;
+
+typedef struct myTimerLinkNode{
+  myTimer * data;
+  struct myTimerLinkNode* next;
+  struct myTimerLinkNode* previous;
+}myTimerLinkNode;
+
+typedef struct myTimerLinkQueue{
+  myTimerLinkNode *front, *rear;
+  int len;
+}myTimerLinkQueue;
  
 
 /*

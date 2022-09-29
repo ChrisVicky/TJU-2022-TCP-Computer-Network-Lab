@@ -8,10 +8,14 @@
 设置初始状态为 CLOSED
 */
 tju_tcp_t* tju_socket(){
-  tju_tcp_t* sock = (tju_tcp_t*)malloc(sizeof(tju_tcp_t));
+  init_retransmit_timer();
+
+  init_trace();
+  tju_tcp_t *sock = (tju_tcp_t *) malloc(sizeof(tju_tcp_t));
   sock->state = CLOSED;
 
   pthread_mutex_init(&(sock->send_lock), NULL);
+  sock->sending_queue = init_q();
   sock->sending_buf = NULL;
   sock->sending_len = 0;
 
@@ -19,16 +23,24 @@ tju_tcp_t* tju_socket(){
   sock->received_buf = NULL;
   sock->received_len = 0;
 
-  if(pthread_cond_init(&sock->wait_cond, NULL) != 0){
+  if (pthread_cond_init(&sock->wait_cond, NULL) != 0) {
     perror("ERROR condition variable not set\n");
     exit(-1);
   }
 
-  sock->window.wnd_send = NULL;
-  sock->window.wnd_recv = NULL;
+  sock->window.wnd_send = (sender_window_t*)   malloc(sizeof(sender_window_t));
+  sock->window.wnd_recv = (receiver_window_t*) malloc(sizeof(receiver_window_t));
 
-  sock->half_queue = q_init();
-  sock->full_queue = q_init();
+  sock->window.wnd_send->rto = INIT_RTT;
+  sock->window.wnd_send->estmated_rtt = INIT_RTT;
+  sock->window.wnd_send->window_size = INIT_WINDOW_SIZE;
+  sock->window.wnd_send->prev_ack_count = 0;
+  sock->window.wnd_send->prev_ack = 0;
+
+  sock->window.wnd_recv->buff_tree = NULL; 
+  
+  sock->half_queue = init_q();
+  sock->full_queue = init_q();
 
   return sock;
 }
@@ -38,9 +50,10 @@ tju_tcp_t* tju_socket(){
 */
 int tju_bind(tju_tcp_t* sock, tju_sock_addr bind_addr){
   if(bhash[bind_addr.port]){
-    printf("端口 %d 已经被占用, bind 失败\n",bind_addr.port);
+    DEBUG("端口 %d 已经被占用, bind 失败\n",bind_addr.port);
     return -1;
   }
+  bhash[bind_addr.port] = 1;
   sock->bind_addr = bind_addr;
   return 0;
 }
@@ -65,54 +78,19 @@ int tju_listen(tju_tcp_t* sock){
 */
 tju_tcp_t* tju_accept(tju_tcp_t* listen_sock){
 
+  while(!listen_sock->full_queue->size); // NOTE: 当 listen 的全连接中没有新来的时候阻塞
+  tju_tcp_t * new_connection = pop_q(listen_sock->full_queue);
 
-  while(!listen_sock->full_queue->len); // NOTE: 当 listen 的全连接中没有新来的时候阻塞
-  tju_tcp_t * new_connection = q_pop(listen_sock->full_queue);
+  // TODO: 要不要进行 pthread_mutex_lock 的初始化
 
-  tju_sock_addr local_addr, remote_addr;
-
-  local_addr.ip = new_connection->established_local_addr.ip;
-  local_addr.port = new_connection->established_local_addr.port;
-  remote_addr.ip = new_connection->established_remote_addr.ip;
-  remote_addr.port = new_connection->established_remote_addr.port;
+  tju_sock_addr local_addr = new_connection->established_local_addr;
+  tju_sock_addr remote_addr = new_connection->established_remote_addr;
 
   // 将新的conn放到内核建立连接的socket哈希表中
   int hashval = cal_hash(local_addr.ip, local_addr.port, remote_addr.ip, remote_addr.port);
   established_socks[hashval] = new_connection;
+  DEBUG("New Tcp Connection accepted! establish hash: %d\n" ,hashval);
   return new_connection;
-
-  // tju_tcp_t* new_conn = (tju_tcp_t*)malloc(sizeof(tju_tcp_t));
-  // memcpy(new_conn, listen_sock, sizeof(tju_tcp_t));
-  //
-  // tju_sock_addr local_addr, remote_addr;
-  // /*
-  //    这里涉及到TCP连接的建立
-  //    正常来说应该是收到客户端发来的SYN报文
-  //    从中拿到对端的IP和PORT
-  //    换句话说 下面的处理流程其实不应该放在这里 应该在tju_handle_packet中
-  //   */ 
-  //
-  // remote_addr.ip = inet_network("172.17.0.2");  //具体的IP地址
-  // remote_addr.port = 5678;  //端口
-  //
-  // local_addr.ip = listen_sock->bind_addr.ip;  //具体的IP地址
-  // local_addr.port = listen_sock->bind_addr.port;  //端口
-  //
-  // new_conn->established_local_addr = local_addr;
-  // new_conn->established_remote_addr = remote_addr;
-  //
-  // // 这里应该是经过三次握手后才能修改状态为ESTABLISHED
-  // new_conn->state = ESTABLISHED;
-  //
-  // // 将新的conn放到内核建立连接的socket哈希表中
-  // int hashval = cal_hash(local_addr.ip, local_addr.port, remote_addr.ip, remote_addr.port);
-  // established_socks[hashval] = new_conn;
-  //
-  // // 如果new_conn的创建过程放到了tju_handle_packet中 那么accept怎么拿到这个new_conn呢
-  // // 在linux中 每个listen socket都维护一个已经完成连接的socket队列
-  // // 每次调用accept 实际上就是取出这个队列中的一个元素
-  // // 队列为空,则阻塞 
-  // return new_conn;
 }
 
 
@@ -138,6 +116,12 @@ int tju_connect(tju_tcp_t* sock, tju_sock_addr target_addr){
 
   char *msg = create_packet_buf(sock->established_local_addr.port, sock->established_remote_addr.port, CLIENT_ISN, 0, DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, SYN_FLAG_MASK, 1, 0, NULL, 0);
 
+  tju_packet_t* pkt = create_packet(
+      sock->established_local_addr.port, sock->established_remote_addr.port,
+      CLIENT_ISN, 0 ,
+      DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN,
+      SYN_FLAG_MASK, 1, 0, NULL, 0);
+
   sendToLayer3(msg, DEFAULT_HEADER_LEN);
   sock->state = SYN_SENT;
 
@@ -145,7 +129,7 @@ int tju_connect(tju_tcp_t* sock, tju_sock_addr target_addr){
   // 实际在linux中 connect调用后 会进入一个while循环
   // 循环跳出的条件是socket的状态变为ESTABLISHED 表面看上去就是 正在连接中 阻塞
   // 而状态的改变在别的地方进行 在我们这就是tju_handle_packet
-  printf("waiting 4 establish\n");
+  DEBUG("waiting 4 establish\n");
 
 
   while(sock->state != ESTABLISHED); // 等待对方将我方的状态转换成 ESTABLISHED
@@ -160,13 +144,13 @@ int tju_send(tju_tcp_t* sock, const void *buffer, int len){
   // 这里当然不能直接简单地调用sendToLayer3
   char* data = malloc(len);
   memcpy(data, buffer, len);
-  printf("send to Client\n");
+  DEBUG("send to Client\n");
 
   char* msg;
   uint32_t seq = 464;
   uint16_t plen = DEFAULT_HEADER_LEN + len;
 
-  // printf("tju_send, 长度len:%d, 内容>%s<\n",len,data);
+  // DEBUG("tju_send, 长度len:%d, 内容>%s<\n",len,data);
 
   msg = create_packet_buf(sock->established_local_addr.port, sock->established_remote_addr.port, seq, 0, 
                           DEFAULT_HEADER_LEN, plen, NO_FLAG, 1, 0, data, len);
@@ -175,6 +159,7 @@ int tju_send(tju_tcp_t* sock, const void *buffer, int len){
 
   return 0;
 }
+
 int tju_recv(tju_tcp_t* sock, void *buffer, int len){
   while(sock->received_len<=0){
     // 阻塞
@@ -221,7 +206,6 @@ int tju_handle_packet(tju_tcp_t* sock, char* pkt){
   memcpy(sock->received_buf + sock->received_len, pkt + DEFAULT_HEADER_LEN, data_len);
   sock->received_len += data_len;
 
-  pthread_mutex_unlock(&(sock->recv_lock)); // 解锁
 
   int pkt_seq = get_seq(pkt);
   int pkt_src = get_src(pkt);
@@ -229,13 +213,14 @@ int tju_handle_packet(tju_tcp_t* sock, char* pkt){
   int pkt_plen = get_plen(pkt);
   int pkt_flag = get_flags(pkt);
 
-  printf("==> 开始 handle packet\n");
+  DEBUG("==> 开始 handle packet\n");
 
-  if(sock->state==LISTEN){
+  switch (sock->state) {
+    case LISTEN:
 
     if(pkt_flag==SYN_FLAG_MASK){
       // 收到 SYN_FLAG --> 连接第一次握手
-      printf("LISTEN 状态 收到 SYN_FLAG\n");
+      DEBUG("LISTEN 状态 收到 SYN_FLAG\n");
       tju_tcp_t * new_sock = (tju_tcp_t*)malloc(sizeof(tju_tcp_t));
       memcpy(new_sock, sock, sizeof(tju_tcp_t));
 
@@ -249,35 +234,38 @@ int tju_handle_packet(tju_tcp_t* sock, char* pkt){
       new_sock->established_remote_addr = remote_addr;
 
       new_sock->state = SYN_RECV;
-
-
-      q_push(sock->half_queue, new_sock);
-      printf("新 socket 准备好，可以push\n");
+      push_q(sock->half_queue, new_sock);
+      DEBUG("新 socket 准备好，可以push\n");
 
       tju_packet_t * ret_pack = create_packet(local_addr.port, remote_addr.port, SERVER_ISN, pkt_seq+1,
                                               DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, ACK_FLAG_MASK | SYN_FLAG_MASK, 1 , 0 , NULL, 0);
       char *msg = packet_to_buf(ret_pack);
       sendToLayer3(msg, DEFAULT_HEADER_LEN);
-      printf("Server 接受到 client 的第一次握手，返回第二次握手\n");
+      DEBUG("Server 接受到 client 的第一次握手，返回第二次握手\n");
 
     }else if(pkt_flag==ACK_FLAG_MASK){
       // 在 Listen 状态接收到 ACK 表明是第三次握手
       // 检查对方 Ack Number 是否正确
       if(pkt_ack==SERVER_ISN+1){
-        tju_tcp_t * established_conn = q_pop(sock->half_queue);
+        tju_tcp_t * established_conn = pop_q(sock->half_queue);
         if(established_conn == NULL){
-          printf("Establshed 是 NULL\n");
+          DEBUG("Establshed 是 NULL\n");
         }
         established_conn->state = ESTABLISHED;
-        q_push(sock->full_queue, established_conn);
-        printf("收到正确的 Ack 三次握手建立成功（至少server 端这么认为）\n");
+        push_q(sock->full_queue, established_conn);
+        DEBUG("收到正确的 Ack 三次握手建立成功（至少server 端这么认为）\n");
+
         return 0;
       }else{
-        printf("client 端发送的 ack 错误，期待>%d<，接收到>%d<\n",SERVER_ISN+1, pkt_ack);
+        DEBUG("client 端发送的 ack 错误，期待>%d<，接收到>%d<\n",SERVER_ISN+1, pkt_ack);
       }
     }else{
-      printf("当前为 LISTEN，接收到其他 flag 的报文，丢弃之\n");
+      DEBUG("当前为 LISTEN，接收到其他 flag 的报文，丢弃之\n");
     }
+      break;
+  
+  }
+  if(sock->state==LISTEN){
   }
 
   if(sock->state == SYN_SENT){
@@ -286,14 +274,16 @@ int tju_handle_packet(tju_tcp_t* sock, char* pkt){
                                               DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, ACK_FLAG_MASK, 1, 0, NULL, 0);
       char *msg = packet_to_buf(new_pack);
       sendToLayer3(msg, DEFAULT_HEADER_LEN);
-      printf("Client 端发送了第三次握手，建立成功\n");
+      DEBUG("Client 端发送了第三次握手，建立成功\n");
       sock->state = ESTABLISHED;
       return 0;
     }else{
-      printf("Client 端接收到了不正确的ack\n");
+      DEBUG("Client 端接收到了不正确的ack\n");
       return 0;
     }
   }
+
+  pthread_mutex_unlock(&(sock->recv_lock)); // 解锁
   return 0;
 }
 
@@ -301,67 +291,5 @@ int tju_close (tju_tcp_t* sock){
   return 0;
 }
 
-// 定义 socket queue 的 init/pop/push/size
-sock_node* new_node(tju_tcp_t* p){
-  sock_node *ret = (sock_node *)malloc(sizeof(sock_node));
-  ret->sock = p;
-  ret->next = NULL;
-  return ret;
-}
-
-sock_queue* q_init(){
-  sock_queue *q = (sock_queue*)malloc(sizeof(sock_queue));
-  q->sock_end = q->sock_head=NULL;
-  q->len = 0;
-  // q_print(q);
-  return q;
-}
-
-int q_size(sock_queue*q){
-  return q->len;
-}
-
-tju_tcp_t* q_pop(sock_queue * q){
-  // q_print(q);
-  if(q->len){
-    q->len--;
-    tju_tcp_t* ret = q->sock_head->sock;
-    sock_node *free_it = q->sock_head;
-    q->sock_head = q->sock_head->next;
-    if(q->sock_head==NULL){
-      q->sock_end = NULL;
-    }
-    free(free_it);
-    return ret;
-  }
-  return NULL;
-}
-
-void q_print(sock_queue *q){
-  sock_node *w = q->sock_head;
-  int i=0;
-  printf("\n===================== PRINT_QUEUE %d ========================\n",q->len);
-  while(w!=NULL){
-    if(w->sock==NULL){
-      printf("%d: NULL,",i++);
-    }else printf("%d: %d,",i++,w->sock->state);
-    w = w->next;
-  }
-  printf("\n===================  QUEUE PRINT END ======================\n\n");
-}
-
-int q_push(sock_queue *q, tju_tcp_t *sock){
-  sock_node *tmp = new_node(sock);
-  if(q->sock_head==NULL){
-    q->sock_head=q->sock_end=tmp;
-    q->len++;
-    return 0;
-  }
-  q->sock_end->next = tmp;
-  q->sock_end = tmp;
-  q->len++;
-  // q_print(q);
-  return 0;
-}
 
 

@@ -3,7 +3,9 @@
 
 #include "global.h"
 #include "tju_packet.h"
+#include "queue.h"
 #include "kernel.h"
+#include "trace.h"
 
 /*
 创建 TCP socket 
@@ -54,12 +56,5 @@ int tju_close (tju_tcp_t* sock);
 
 int tju_handle_packet(tju_tcp_t* sock, char* pkt);
 
-
-sock_queue* q_init();
-int q_size(sock_queue*q);
-tju_tcp_t* q_pop(sock_queue * q);
-int q_push(sock_queue *q, tju_tcp_t* sock);
-
-void q_print(sock_queue *q);
 #endif
 
