@@ -15,8 +15,11 @@
 #include <sys/select.h>
 #include <arpa/inet.h>
 
+#include "tju_packet.h"
 #include "trace.h"
 #include "tree.h"
+#include "timer_helper.h"
+#include "tran.h"
 #include "debug.h"
 
 // 单位是byte
@@ -153,5 +156,8 @@ typedef struct {
   struct myQueue *full_queue;
 } tju_tcp_t;
 
-
+typedef struct transmit_arg_t{
+  tju_tcp_t * sock;
+  tju_packet_t * pkt;
+}transmit_arg_t;
 #endif

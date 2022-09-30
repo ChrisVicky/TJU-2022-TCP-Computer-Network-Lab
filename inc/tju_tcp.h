@@ -56,5 +56,9 @@ int tju_close (tju_tcp_t* sock);
 
 int tju_handle_packet(tju_tcp_t* sock, char* pkt);
 
+
+void safe_packet_sender(tju_packet_t * packet);
+
+
 #endif
 

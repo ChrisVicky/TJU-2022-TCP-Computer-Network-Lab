@@ -9,7 +9,6 @@
 */
 tju_tcp_t* tju_socket(){
   init_retransmit_timer();
-
   init_trace();
   tju_tcp_t *sock = (tju_tcp_t *) malloc(sizeof(tju_tcp_t));
   sock->state = CLOSED;
@@ -86,6 +85,7 @@ tju_tcp_t* tju_accept(tju_tcp_t* listen_sock){
   tju_sock_addr local_addr = new_connection->established_local_addr;
   tju_sock_addr remote_addr = new_connection->established_remote_addr;
 
+  pthread_mutex_init(&(new_connection->recv_lock), NULL);
   // 将新的conn放到内核建立连接的socket哈希表中
   int hashval = cal_hash(local_addr.ip, local_addr.port, remote_addr.ip, remote_addr.port);
   established_socks[hashval] = new_connection;
@@ -103,18 +103,17 @@ tju_tcp_t* tju_accept(tju_tcp_t* listen_sock){
 */
 int tju_connect(tju_tcp_t* sock, tju_sock_addr target_addr){
 
-
   tju_sock_addr local_addr;
   local_addr.ip = inet_network("172.17.0.2");
   local_addr.port = 5678; // 连接方进行connect连接的时候 内核中是随机分配一个可用的端口
   sock->established_local_addr = local_addr;
   sock->established_remote_addr = target_addr;
 
+  sock->window.wnd_send->nextseq = INIT_CLIENT_SEQ;
+  sock->window.wnd_send->base = INIT_CLIENT_SEQ;
   // 将建立了连接的socket放入内核 已建立连接哈希表中
-  int hashval = cal_hash(local_addr.ip, local_addr.port, target_addr.ip, target_addr.port);
-  established_socks[hashval] = sock;
-
-  char *msg = create_packet_buf(sock->established_local_addr.port, sock->established_remote_addr.port, CLIENT_ISN, 0, DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, SYN_FLAG_MASK, 1, 0, NULL, 0);
+  int hashval = cal_hash(local_addr.ip, local_addr.port, 0, 0);
+  listen_socks[hashval] = sock;
 
   tju_packet_t* pkt = create_packet(
       sock->established_local_addr.port, sock->established_remote_addr.port,
@@ -122,24 +121,33 @@ int tju_connect(tju_tcp_t* sock, tju_sock_addr target_addr){
       DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN,
       SYN_FLAG_MASK, 1, 0, NULL, 0);
 
-  sendToLayer3(msg, DEFAULT_HEADER_LEN);
+  send_with_retransmit(sock, pkt, FALSE);
+
+  sock->window.wnd_send->nextseq++;
   sock->state = SYN_SENT;
-
-  // 这里也不能直接建立连接 需要经过三次握手
-  // 实际在linux中 connect调用后 会进入一个while循环
-  // 循环跳出的条件是socket的状态变为ESTABLISHED 表面看上去就是 正在连接中 阻塞
-  // 而状态的改变在别的地方进行 在我们这就是tju_handle_packet
-  DEBUG("waiting 4 establish\n");
-
-
+  DEBUG("waiting FOR establish\n");
   while(sock->state != ESTABLISHED); // 等待对方将我方的状态转换成 ESTABLISHED
 
-  // sock->state = ESTABLISHED;
-
-
+  listen_socks[hashval] = NULL;
+  hashval = cal_hash(local_addr.ip, local_addr.port, target_addr.ip, target_addr.port);
+  established_socks[hashval] = sock;
   return 0;
 }
 
+
+/**
+* @brief Safely send tju_packet_t (with free)
+*
+* @param packet
+*/
+void safe_packet_sender(tju_packet_t * packet){
+  char *pkt = packet_to_buf(packet);
+  sendToLayer3(pkt, packet->header.plen);
+  free(pkt);
+  return ;
+}
+
+// TODO: Add Windows Solution
 int tju_send(tju_tcp_t* sock, const void *buffer, int len){
   // 这里当然不能直接简单地调用sendToLayer3
   char* data = malloc(len);
@@ -191,6 +199,7 @@ int tju_recv(tju_tcp_t* sock, void *buffer, int len){
   return 0;
 }
 
+// TODO: NOT IMPLEMENTED
 int tju_handle_packet(tju_tcp_t* sock, char* pkt){
 
   uint32_t data_len = get_plen(pkt) - DEFAULT_HEADER_LEN;
