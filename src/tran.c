@@ -14,7 +14,6 @@ void init_retransmit_timer() {
   timers = init_timer_list();
   memset(ack_id_hash, 0, sizeof(ack_id_hash));
   start_work_thread(timers);
-  DEBUG("retransmit thread initialized\n");
 }
 
 void update_rtt(double rtt, tju_tcp_t *tju_tcp) {
@@ -29,7 +28,7 @@ void *retransmit(transmit_arg_t *args) {
   uint32_t id = set_timer_without_mutex(timers,0,SEC2NANO(tju_tcp->window.wnd_send->rto),(void *(*)(void *)) retransmit,args);
   uint16_t dlen = pkt->header.plen - pkt->header.hlen;
   ack_id_hash[pkt->header.seq_num + dlen + 1] = id;
-  DEBUG("transmit : set timer %d expecting ack: %d, timeout at %f\n",id,pkt->header.seq_num + dlen + 1,tju_tcp->window.wnd_send->rto);
+  _debug_("transmit : set timer %d expecting ack: %d, timeout at %f\n",id,pkt->header.seq_num + dlen + 1,tju_tcp->window.wnd_send->rto);
   safe_packet_sender(pkt);
   return NULL;
 }
@@ -43,29 +42,36 @@ uint32_t send_with_retransmit(tju_tcp_t *sock, tju_packet_t *pkt, int requiring_
     id = set_timer(timers, 0, SEC2NANO(sock->window.wnd_send->rto), (void *(*)(void *)) retransmit, args);
     uint16_t dlen = pkt->header.plen - pkt->header.hlen;
     ack_id_hash[pkt->header.seq_num + dlen + 1] = id;
-    DEBUG("set timer %d expecting ack: %d, timeout at %f\n",
-          id,
-          pkt->header.seq_num + dlen + 1,
-          sock->window.wnd_send->rto);
+    _debug_("set timer %d expecting ack: %d, timeout at %f\n", id, pkt->header.seq_num + dlen + 1, sock->window.wnd_send->rto);
   }
   safe_packet_sender(pkt);
-  DEBUG("Sending Packet: ack:%d, seq:%d\n", pkt->header.ack_num, pkt->header.seq_num);
+  _debug_("Sending Packet: ack:%d, seq:%d\n", pkt->header.ack_num, pkt->header.seq_num);
   return 0;
 }
 
 void free_retrans_arg(void *arg) {
+  _debug_("FREE 1\n");
   timer_event *ptr = (timer_event *) arg;
+  _debug_("FREE 2\n");
   struct timespec now;
+  _debug_("FREE 3\n");
   clock_gettime(CLOCK_REALTIME, &now);
+  _debug_("FREE 4\n");
   uint64_t current_time = TIMESPEC2NANO(now);
+  _debug_("FREE 5\n");
   uint64_t create_time = TIMESPEC2NANO((*ptr->create_at));
-  update_rtt((current_time - create_time) / 1000000000.0, ((transmit_arg_t *) ptr->args)->sock);
-  free(((transmit_arg_t *) ptr->args)->pkt);
+  _debug_("FREE 6\n");
+  //WARN: ptr->args may be NULL (Debug is needed)
+  // update_rtt((current_time - create_time) / 1000000000.0, ((transmit_arg_t *) ptr->args)->sock);
+  _debug_("FREE 7\n");
+  // Free Error
+  // free(((transmit_arg_t *) ptr->args)->pkt);
+  _debug_("FREE 8\n");
 }
 
 void received_ack(uint32_t ack, tju_tcp_t *sock) {
   // TODO: an ack should remove all the packets with seq_num+length < ack
-  DEBUG("ack received: %d\n", ack);
+  _debug_("ack received: %d\n", ack);
   if (ack_id_hash[ack] != 0) {
     uint32_t tmp = sock->window.wnd_send->base;
     while (ack_id_hash[++tmp] == 0);
@@ -78,7 +84,6 @@ void received_ack(uint32_t ack, tju_tcp_t *sock) {
 }
 
 void *transit_work_thread(timer_list *list) {
-  DEBUG("transit work thread start\n");
   struct timespec spec;
   spec = NANO2TIMESPEC(get_recent_timeout(list));
   while(TRUE){

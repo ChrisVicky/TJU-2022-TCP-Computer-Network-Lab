@@ -1,4 +1,6 @@
 #include "../inc/kernel.h"
+#include "../inc/tju_packet.h"
+#include "../inc/tju_tcp.h"
 /*
 模拟Linux内核收到一份TCP报文的处理函数
 */
@@ -31,13 +33,14 @@ void onTCPPocket(char* pkt){
 
     // 没有的话再查找监听中的socket哈希表
     hashval = cal_hash(local_ip, local_port, 0, 0); //监听的socket只有本地监听ip和端口 没有远端
+    _debug_("ip:%d port:%d hashval: %d\n",local_ip, local_port, hashval);
     if (listen_socks[hashval]!=NULL){
         tju_handle_packet(listen_socks[hashval], pkt);
         return;
     }
 
     // 都没找到 丢掉数据包
-    printf("找不到能够处理该TCP数据包的socket, 丢弃该数据包\n");
+    _debug_("找不到能够处理该TCP数据包的socket, 丢弃该数据包\n");
     return;
 }
 
@@ -50,7 +53,7 @@ void onTCPPocket(char* pkt){
 */
 void sendToLayer3(char* packet_buf, int packet_len){
     if (packet_len>MAX_LEN){
-        printf("ERROR: 不能发送超过 MAX_LEN 长度的packet, 防止IP层进行分片\n");
+        _debug_("ERROR: 不能发送超过 MAX_LEN 长度的packet, 防止IP层进行分片\n");
         return;
     }
 
@@ -63,15 +66,15 @@ void sendToLayer3(char* packet_buf, int packet_len){
     conn.sin_port        = htons(20218);
     int rst;
     if(strcmp(hostname,"server")==0){
-        printf("向 172.17.0.2 发送信息\n");
+        _debug_("向 172.17.0.2 发送信息\n");
         conn.sin_addr.s_addr = inet_addr("172.17.0.2");
         rst = sendto(BACKEND_UDPSOCKET_ID, packet_buf, packet_len, 0, (struct sockaddr*)&conn, sizeof(conn));
     }else if(strcmp(hostname,"client")==0){       
-        printf("向 172.17.0.3 发送信息\n");
+        _debug_("向 172.17.0.3 发送信息\n");
         conn.sin_addr.s_addr = inet_addr("172.17.0.3");
         rst = sendto(BACKEND_UDPSOCKET_ID, packet_buf, packet_len, 0, (struct sockaddr*)&conn, sizeof(conn));
     }else{
-        printf("请不要改动hostname...\n");
+        _debug_("请不要改动hostname...\n");
         exit(-1);
     }
 }
@@ -97,8 +100,8 @@ void* receive_thread(void* arg){
         // MSG_PEEK 表示看一眼 不会把数据从缓冲区删除
         len = recvfrom(BACKEND_UDPSOCKET_ID, hdr, DEFAULT_HEADER_LEN, MSG_PEEK, (struct sockaddr *)&from_addr, &from_addr_size);
         // 一旦收到了大于header长度的数据 则接受整个TCP包
-        // printf("Recved %d\n",len);
-        // printf("contant: >%s<\n",hdr);
+        // _debug_("Recved %d\n",len);
+        // _debug_("contant: >%s<\n",hdr);
         if(len >= DEFAULT_HEADER_LEN){
             plen = get_plen(hdr); 
             pkt = malloc(plen);
@@ -132,11 +135,11 @@ void startSimulation(){
     // 获取hostname 
     char hostname[8];
     gethostname(hostname, 8);
-    // printf("startSimulation on hostname: %s\n", hostname);
+    // _debug_("startSimulation on hostname: %s\n", hostname);
 
     BACKEND_UDPSOCKET_ID = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     if (BACKEND_UDPSOCKET_ID < 0){
-        printf("ERROR opening socket");
+        _debug_("ERROR opening socket");
         exit(-1);
     }
 
@@ -152,17 +155,17 @@ void startSimulation(){
     conn.sin_port = htons((unsigned short)20218);
 
     if (bind(BACKEND_UDPSOCKET_ID, (struct sockaddr *) &conn, sizeof(conn)) < 0){
-        printf("ERROR on binding");
+        _debug_("ERROR on binding");
         exit(-1);
     }
 
     pthread_t thread_id = 1001;
     int rst = pthread_create(&thread_id, NULL, receive_thread, (void*)(&BACKEND_UDPSOCKET_ID));
     if (rst<0){
-        printf("ERROR open thread");
+        _debug_("ERROR open thread");
         exit(-1); 
     }
-    // printf("successfully created bankend thread\n");
+    // _debug_("successfully created bankend thread\n");
     return;
 }
 

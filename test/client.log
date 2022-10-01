@@ -1,4 +1,14 @@
-
+(DEBUG) [1664643619457] [src/kernel.c        : 73  : sendToLayer3          ] 	向 172.17.0.3 发送信息
+(DEBUG) [1664643619457] [src/tran.c          : 48  : send_with_retransmit  ] 	Sending Packet: ack:0, seq:0
+(DEBUG) [1664643619457] [src/tju_tcp.c       : 131 : tju_connect           ] 	waiting FOR establish
+(DEBUG) [1664643619514] [src/kernel.c        : 36  : onTCPPocket           ] 	ip:-1408172030 port:5678 hashval: 16
+(DEBUG) [1664643619514] [src/tju_tcp.c       : 222 : tju_handle_packet     ] 	------------- start handle ----
+(DEBUG) [1664643619514] [src/tran.c          : 74  : received_ack          ] 	ack received: 1
+(DEBUG) [1664643619514] [src/tju_tcp.c       : 236 : tju_handle_packet     ] 	============== STATE:2, start handle======
+(DEBUG) [1664643619514] [src/tju_tcp.c       : 266 : tju_handle_packet     ] 	SYN_ACK RECEIVED
+(DEBUG) [1664643619515] [src/kernel.c        : 73  : sendToLayer3          ] 	向 172.17.0.3 发送信息
+(DEBUG) [1664643619515] [src/tran.c          : 48  : send_with_retransmit  ] 	Sending Packet: ack:647, seq:1
+(DEBUG) [1664643619515] [src/tju_tcp.c       : 273 : tju_handle_packet     ] 	
 	========= Packet Header ========
 	src: 5678, dst: 1234, 
 	seq: 0, ack: 0, 
@@ -8,9 +18,6 @@
 	==== data: >(null)< ====
 	======= Packet print Over ====
 
-向 172.17.0.3 发送信息
-waiting 4 establish
-==> 开始 handle packet
 
 	========= Packet Header ========
 	src: 5678, dst: 1234, 
@@ -21,5 +28,5 @@ waiting 4 establish
 	==== data: >(null)< ====
 	======= Packet print Over ====
 
-向 172.17.0.3 发送信息
-Client 端发送了第三次握手，建立成功
+ACK SENT
+(DEBUG) [1664643619515] [src/tju_tcp.c       : 275 : tju_handle_packet     ] 	

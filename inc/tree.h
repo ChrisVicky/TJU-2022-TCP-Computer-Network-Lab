@@ -3,14 +3,6 @@
 // Define a binary tree with <Key, Value> Pair search Function
 #include "global.h"
 
-// Create Node
-typedef struct myTree {
-  int key;
-  void *value;
-  struct myTree *left;
-  struct myTree *right;
-  int height;
-}myTree;
 
 struct myTree*new_tree(int key, void *data);
 struct myTree *find_key(struct myTree *root, int key);

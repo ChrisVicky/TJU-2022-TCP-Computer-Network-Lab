@@ -15,20 +15,13 @@
 #include <sys/select.h>
 #include <arpa/inet.h>
 
-#include "tju_packet.h"
-#include "trace.h"
-#include "tree.h"
-#include "timer_helper.h"
-#include "tran.h"
-#include "debug.h"
-
 // 单位是byte
 #define SIZE32 4
 #define SIZE16 2
 #define SIZE8  1
 
-#define INIT_SERVER_SEQ 300
-#define INIT_CLIENT_SEQ 100
+#define INIT_SERVER_SEQ 0
+#define INIT_CLIENT_SEQ 0
 
 //RTT CALCULATION
 #define RTT_ALPHA 0.125
@@ -81,6 +74,14 @@
 #define FIN_FLAG 3
 #define ACK_SYN_FLAG 4
 
+// Create Node
+typedef struct myTree {
+  int key;
+  void *value;
+  struct myTree *left;
+  struct myTree *right;
+  int height;
+}myTree;
 
 
 // TCP 发送窗口
@@ -158,6 +159,7 @@ typedef struct {
 
 typedef struct transmit_arg_t{
   tju_tcp_t * sock;
-  tju_packet_t * pkt;
+  void * pkt;
 }transmit_arg_t;
+
 #endif

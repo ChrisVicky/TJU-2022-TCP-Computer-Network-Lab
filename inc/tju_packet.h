@@ -11,8 +11,8 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include "global.h"
 
+#include "global.h"
 
 #define DEFAULT_HEADER_LEN 20
 #define SYN_FLAG_MASK 0x8
@@ -87,5 +87,7 @@ char* header_in_char(uint16_t src, uint16_t dst, uint32_t seq, uint32_t ack,
 
 
 void print_tju_packet(tju_packet_t p);
+
+tju_packet_t *buf_to_packet(char *buf);
 
 #endif

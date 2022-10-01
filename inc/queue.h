@@ -20,4 +20,6 @@ int push_q(myQueue* q, void *data);
 
 void *pop_q(myQueue* q);
 
+int is_empty_q(myQueue *q);
+
 #endif // !__QUEUE_H__

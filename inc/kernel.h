@@ -2,11 +2,10 @@
 #define _KERNEL_H_
 
 #include "global.h"
-#include "tju_packet.h"
 #include <unistd.h>
-#include "tju_tcp.h"
 
 #define MAX_SOCK 32
+
 tju_tcp_t* listen_socks[MAX_SOCK];
 tju_tcp_t* established_socks[MAX_SOCK];
 

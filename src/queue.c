@@ -10,6 +10,7 @@ myQueue* init_q(){
 }
 
 int push_q(myQueue* q, void *data){
+  // _debug_("push_q start\n");
   struct myNode * new_node = (myNode*)malloc(sizeof(struct myNode));
 
   if(new_node == NULL) return q->size;
@@ -27,18 +28,16 @@ int push_q(myQueue* q, void *data){
     q->tail = new_node;
     q->size ++;
   }
+  // _debug_("push_q end\n");
   return q->size;
 }
 
 void *pop_q(myQueue* q){
   if(q->size==0) return NULL;
   q->size -- ;
-
   void *data = q->head->data;
   myNode* to_free = q->head;
-
   q->head = q->head->next;
-
   free(to_free);
   return data;
 }
@@ -47,3 +46,6 @@ int size_q(myQueue* q){
   return q->size;
 }
 
+int is_empty_q(myQueue *q){
+  return q->size == 0;
+}

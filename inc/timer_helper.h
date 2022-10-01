@@ -2,6 +2,7 @@
 #define __LIST_H__
 //  定义一个 LIST 类型（链表实现）
 #include "global.h"
+#include "debug.h"
 
 //TODO: Not yet Finish IMPLEMENTATION
 #define SEC2NANO(x) (uint64_t)(x * 1000000000)
@@ -26,7 +27,7 @@ typedef struct timer_list{
   timer_node* tail;
   int size;
   int total;
-  pthread_mutex_t* lock;
+  pthread_mutex_t lock;
 }timer_list;
 
 struct timer_list* init_timer_list();
