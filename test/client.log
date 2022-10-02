@@ -1,32 +1,13 @@
-(DEBUG) [1664643619457] [src/kernel.c        : 73  : sendToLayer3          ] 	向 172.17.0.3 发送信息
-(DEBUG) [1664643619457] [src/tran.c          : 48  : send_with_retransmit  ] 	Sending Packet: ack:0, seq:0
-(DEBUG) [1664643619457] [src/tju_tcp.c       : 131 : tju_connect           ] 	waiting FOR establish
-(DEBUG) [1664643619514] [src/kernel.c        : 36  : onTCPPocket           ] 	ip:-1408172030 port:5678 hashval: 16
-(DEBUG) [1664643619514] [src/tju_tcp.c       : 222 : tju_handle_packet     ] 	------------- start handle ----
-(DEBUG) [1664643619514] [src/tran.c          : 74  : received_ack          ] 	ack received: 1
-(DEBUG) [1664643619514] [src/tju_tcp.c       : 236 : tju_handle_packet     ] 	============== STATE:2, start handle======
-(DEBUG) [1664643619514] [src/tju_tcp.c       : 266 : tju_handle_packet     ] 	SYN_ACK RECEIVED
-(DEBUG) [1664643619515] [src/kernel.c        : 73  : sendToLayer3          ] 	向 172.17.0.3 发送信息
-(DEBUG) [1664643619515] [src/tran.c          : 48  : send_with_retransmit  ] 	Sending Packet: ack:647, seq:1
-(DEBUG) [1664643619515] [src/tju_tcp.c       : 273 : tju_handle_packet     ] 	
-	========= Packet Header ========
-	src: 5678, dst: 1234, 
-	seq: 0, ack: 0, 
-	head len: 20, plen: 20, 
-	flags: 8, advertised_window: 1
-	========== Packet =========
-	==== data: >(null)< ====
-	======= Packet print Over ====
-
-
-	========= Packet Header ========
-	src: 5678, dst: 1234, 
-	seq: 1, ack: 647, 
-	head len: 20, plen: 20, 
-	flags: 4, advertised_window: 1
-	========== Packet =========
-	==== data: >(null)< ====
-	======= Packet print Over ====
-
-ACK SENT
-(DEBUG) [1664643619515] [src/tju_tcp.c       : 275 : tju_handle_packet     ] 	
+(DEBUG) [1664708499716] [src/kernel.c        : 74  : sendToLayer3          ] 	向 172.17.0.3 发送信息
+(DEBUG) [1664708499723] [src/tran.c          : 54  : send_with_retransmit  ] 	Sending Packet: ack:0, seq:0
+(DEBUG) [1664708499723] [src/tju_tcp.c       : 128 : tju_connect           ] 	waiting FOR establish
+(DEBUG) [1664708501592] [src/kernel.c        : 37  : onTCPPocket           ] 	addr 172.17.0.2:5678
+(DEBUG) [1664708501593] [src/tju_tcp.c       : 212 : tju_handle_packet     ] 	------------- start handle ----
+(DEBUG) [1664708501593] [src/tran.c          : 70  : received_ack          ] 	ack received: 1
+(TRACE) [1664708501594] [src/trace.c         : 50  : trace_recv            ] 	[1664708501594] [RECV] [seq:0 ack:1 flag:SYN|ACK]
+(DEBUG) [1664708501594] [src/tju_tcp.c       : 226 : tju_handle_packet     ] 	============== STATE:2, start handle======
+(DEBUG) [1664708501594] [src/tju_tcp.c       : 258 : tju_handle_packet     ] 	SYN_ACK RECEIVED
+(DEBUG) [1664708501594] [src/kernel.c        : 74  : sendToLayer3          ] 	向 172.17.0.3 发送信息
+(DEBUG) [1664708501594] [src/tran.c          : 54  : send_with_retransmit  ] 	Sending Packet: ack:1, seq:1
+(DEBUG) [1664708501594] [src/tju_tcp.c       : 265 : tju_handle_packet     ] 	ACK SENT
+(DEBUG) [1664708501594] [src/tju_tcp.c       : 267 : tju_handle_packet     ] 	expect_seq:1

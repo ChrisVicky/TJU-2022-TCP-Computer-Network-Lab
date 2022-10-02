@@ -1,5 +1,13 @@
 #include "tju_tcp.h"
 #include <string.h>
+#include <fcntl.h>
+
+#define MIN_LEN 1000
+#define EACHSIZE 10*MIN_LEN
+#define MAXSIZE 50*MIN_LEN*MIN_LEN
+
+// 全局变量
+int t_times = 5000;
 
 void sleep_no_wake(int sec){  
     do{          
@@ -21,11 +29,39 @@ int main(int argc, char **argv) {
 
     sleep_no_wake(8);
 
-    for(int i=0;i<50;i++){
-        char buf[16];
-        sprintf(buf , "test message%d\n", i);
-        tju_send(my_socket, buf, 16);
+    int fd =  open("./rdt_send_file.txt",O_RDWR);
+    if(-1 == fd) {
+        return 1;
     }
+    struct stat st;
+    fstat(fd, &st);
+    char* file_buf  = (char *)malloc(sizeof(char)*st.st_size);
+    read(fd, (void *)file_buf, st.st_size );
+    close(fd);
+
+    for(int i=0; i<t_times; i++){
+        char *buf = malloc(EACHSIZE);
+        memset(buf, 0, EACHSIZE);
+        if(i<10){
+            sprintf(buf , "START####%d#", i);
+        }
+        else if(i<100){
+            sprintf(buf , "START###%d#", i);
+        }
+        else if(i<1000){
+            sprintf(buf , "START##%d#", i);
+        }
+        else if(i<10000){
+            sprintf(buf , "START#%d#", i);
+        }
+
+        strcat(buf, file_buf);
+        tju_send(my_socket, buf, EACHSIZE);
+        free(buf);
+    }
+
+    free(file_buf);
+        
     sleep_no_wake(100);
 
     return EXIT_SUCCESS;

@@ -124,6 +124,7 @@ struct myTree *minValuemyTree(struct myTree *node) {
   return current;
 }
 
+
 /**
 * @brief get value with Key
 *
@@ -188,6 +189,15 @@ struct myTree *find_key(struct myTree *root, int key) {
   }
 
   return root;
+}
+
+void * get_value(struct myTree *root, int key){
+  myTree *tmp = find_key(root, key);
+  if(tmp==NULL){
+    _debug_("Key %d miss match\n" ,key);
+    return NULL;
+  }
+  return tmp->value;
 }
 
 void free_tree(myTree* root){

@@ -1,4 +1,5 @@
 #include "../inc/tran.h"
+#include <arpa/inet.h>
 
 #define min(x,y) ((x)<(y)?(x):(y))
 #define max(x,y) ((x)>(y)?(x):(y))
@@ -17,6 +18,11 @@ void init_retransmit_timer() {
 }
 
 void update_rtt(double rtt, tju_tcp_t *tju_tcp) {
+  struct in_addr *tmp = malloc(sizeof(struct in_addr));
+  memcpy(tmp, &tju_tcp->bind_addr.ip, sizeof(struct in_addr));
+  _debug_("start to update rtt :\n");
+  _ip_port_(tju_tcp->bind_addr);
+  free(tmp);
   double srtt = tju_tcp->window.wnd_send->estmated_rtt;
   tju_tcp->window.wnd_send->estmated_rtt = (RTT_ALPHA * srtt) + (1 - RTT_ALPHA) * rtt;
   tju_tcp->window.wnd_send->rto = min(RTT_UBOUND, max(RTT_LBOUND, RTT_BETA * srtt));
@@ -50,23 +56,13 @@ uint32_t send_with_retransmit(tju_tcp_t *sock, tju_packet_t *pkt, int requiring_
 }
 
 void free_retrans_arg(void *arg) {
-  _debug_("FREE 1\n");
   timer_event *ptr = (timer_event *) arg;
-  _debug_("FREE 2\n");
   struct timespec now;
-  _debug_("FREE 3\n");
   clock_gettime(CLOCK_REALTIME, &now);
-  _debug_("FREE 4\n");
   uint64_t current_time = TIMESPEC2NANO(now);
-  _debug_("FREE 5\n");
   uint64_t create_time = TIMESPEC2NANO((*ptr->create_at));
-  _debug_("FREE 6\n");
-  //WARN: ptr->args may be NULL (Debug is needed)
-  // update_rtt((current_time - create_time) / 1000000000.0, ((transmit_arg_t *) ptr->args)->sock);
-  _debug_("FREE 7\n");
-  // Free Error
-  // free(((transmit_arg_t *) ptr->args)->pkt);
-  _debug_("FREE 8\n");
+  update_rtt((current_time - create_time) / 1000000000.0, ((transmit_arg_t *) ptr->args)->sock);
+  free(((transmit_arg_t *) ptr->args)->pkt);
 }
 
 void received_ack(uint32_t ack, tju_tcp_t *sock) {
@@ -100,3 +96,4 @@ pthread_t start_work_thread(timer_list* list) {
   pthread_create(&work_thread, NULL, (void *(*)(void *)) transit_work_thread, list);
   return work_thread;
 }
+

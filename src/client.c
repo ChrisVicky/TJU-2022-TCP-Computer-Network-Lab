@@ -5,7 +5,6 @@
 int main(int argc, char **argv) {
   // 开启仿真环境 
   startSimulation();
-  _debug_("Simulation Started\n");
   _debug_("----------------- SIMULATION STARTED ----------------------\n");
 
   tju_tcp_t* my_socket = tju_socket();

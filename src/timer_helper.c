@@ -124,35 +124,26 @@ uint32_t get_recent_timeout(struct timer_list *list) {
 }
 
 int destroy_timer(struct timer_list *list, uint32_t id, int destroy, void (*des)(void *)) {
-  _debug_("destroy timer %d\n", id);
+  // _debug_("destroy timer %d\n", id);
   pthread_mutex_lock(&list->lock);
   struct timer_node *iter= list->head;
   struct timer_node *prev = NULL;
   while (iter != NULL) {
-    _debug_("IN WHILE\n");
     if (iter->id == id) {
-      _debug_("HIT\n");
       if (prev == NULL) {
-      _debug_("HIT 1\n");
         list->head = iter->next;
       } else {
-      _debug_("HIT 2\n");
         prev->next = iter->next;
       }
-      _debug_("HIT 3\n");
       if (iter == list->tail) {
-      _debug_("HIT 4\n");
         list->tail = prev;
       }
-      _debug_("HIT 5\n");
       if (destroy) {
-      _debug_("HIT 6\n");
-        des(&iter->event);
+        des(iter->event);
       }
-      _debug_("HIT 7\n");
       free_timer_node(iter);
       list->size--;
-      _debug_("timer %d canceled\n", id);
+      // _debug_("timer %d canceled\n", id);
       pthread_mutex_unlock(&list->lock);
       return 0;
     }
@@ -160,7 +151,5 @@ int destroy_timer(struct timer_list *list, uint32_t id, int destroy, void (*des)
     iter = iter->next;
   }
   pthread_mutex_unlock(&list->lock);
-
-  _debug_("Destroy Success\n");
   return -1;
 }

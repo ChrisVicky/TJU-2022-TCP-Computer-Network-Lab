@@ -24,6 +24,7 @@ $(BUILD_DIR)/%.o: $(SRC_DIR)/%.c
 
 clean:
 	-rm -f ./build/*.o client server
+	-rm -f *.event.trace
 
 server: $(OBJS)
 	$(CC) $(FLAGS) ./src/server.c -o server $(OBJS)
