@@ -29,12 +29,13 @@ void update_rtt(double rtt, tju_tcp_t *tju_tcp) {
 }
 
 void *retransmit(transmit_arg_t *args) {
+  // TODO: Check if there need another timer set
   tju_tcp_t *tju_tcp = (tju_tcp_t *) args->sock;
   tju_packet_t *pkt = args->pkt;
   uint32_t id = set_timer_without_mutex(timers,0,SEC2NANO(tju_tcp->window.wnd_send->rto),(void *(*)(void *)) retransmit,args);
   uint16_t dlen = pkt->header.plen - pkt->header.hlen;
   ack_id_hash[pkt->header.seq_num + dlen + 1] = id;
-  _debug_("transmit : set timer %d expecting ack: %d, timeout at %f\n",id,pkt->header.seq_num + dlen + 1,tju_tcp->window.wnd_send->rto);
+  printf("transmit : set timer %d expecting ack: %d, timeout at %f\n",id,pkt->header.seq_num + dlen + 1,tju_tcp->window.wnd_send->rto);
   safe_packet_sender(pkt);
   return NULL;
 }
@@ -48,7 +49,7 @@ uint32_t send_with_retransmit(tju_tcp_t *sock, tju_packet_t *pkt, int requiring_
     id = set_timer(timers, 0, SEC2NANO(sock->window.wnd_send->rto), (void *(*)(void *)) retransmit, args);
     uint16_t dlen = pkt->header.plen - pkt->header.hlen;
     ack_id_hash[pkt->header.seq_num + dlen + 1] = id;
-    _debug_("set timer %d expecting ack: %d, timeout at %f\n", id, pkt->header.seq_num + dlen + 1, sock->window.wnd_send->rto);
+    // printf("set timer %d expecting ack: %d, timeout at %f\n", id, pkt->header.seq_num + dlen + 1, sock->window.wnd_send->rto);
   }
   safe_packet_sender(pkt);
   _debug_("Sending Packet: ack:%d, seq:%d\n", pkt->header.ack_num, pkt->header.seq_num);

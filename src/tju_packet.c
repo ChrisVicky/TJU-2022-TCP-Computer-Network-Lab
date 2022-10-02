@@ -202,7 +202,7 @@ char* packet_to_buf(tju_packet_t* p){
 
 //helper
 void print_tju_packet(tju_packet_t p){
-  if(0){
+  if(DEBUG_FLAG){
     printf("\n\t========= Packet Header ========\n");
     printf("\tsrc: %d, dst: %d, \n\tseq: %d, ack: %d, \n\thead len: %d, plen: %d, \n\tflags: %d, advertised_window: %d\n",p.header.source_port,p.header.destination_port,p.header.seq_num,p.header.ack_num,p.header.hlen,p.header.plen,p.header.flags,p.header.advertised_window);
     printf("\t========== Packet =========\n");

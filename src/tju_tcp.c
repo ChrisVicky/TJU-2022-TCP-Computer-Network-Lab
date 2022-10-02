@@ -39,7 +39,7 @@ tju_tcp_t* tju_socket(){
   sock->window.wnd_send->prev_ack_count = 0;
   sock->window.wnd_send->prev_ack = 0;
 
-  sock->window.wnd_recv->buff_tree = NULL; 
+  sock->window.wnd_recv->buff_tree = init_tree(); 
 
   sock->half_queue = init_q();
   sock->full_queue = init_q();
@@ -281,13 +281,14 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
       break;
     case ESTABLISHED:
       if (flag == NO_FLAG) {
+        //TODO: ADD ACK feed back
         _debug_("PKT received with seq: %d, dlen: %d\n", seq, data_len);
         tju_packet_t *ack_pkt = create_packet(dst_port, src_port, 0, seq + data_len + 1,
                                               DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, ACK_FLAG_MASK, 1, 0, NULL, 0);
         send_with_retransmit(sock, ack_pkt, FALSE);
         free_packet(ack_pkt);
         if (data_len > 0) {
-          insert_tree(sock->window.wnd_recv->buff_tree, seq, buf_to_packet(pkt));
+          insert_key_value(sock->window.wnd_recv->buff_tree, seq, buf_to_packet(pkt));
           if (sock->window.wnd_recv->expect_seq == seq) {
             _debug_("expect_seq:%d updated!\n", sock->window.wnd_recv->expect_seq);
             if (sock->received_buf == NULL || sock->received_len == 0) {
@@ -299,8 +300,11 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
             sock->received_len += data_len;
             sock->window.wnd_recv->expect_seq += data_len + 1;
             _debug_("expect_seq:%d\n", sock->window.wnd_recv->expect_seq);
-            tju_packet_t *tmp = get_value(sock->window.wnd_recv->buff_tree, sock->window.wnd_recv->expect_seq);
-
+            // tju_packet_t *tmp = get_value(sock->window.wnd_recv->buff_tree, sock->window.wnd_recv->expect_seq);
+            tju_packet_t *tmp = get_value(sock->window.wnd_recv->buff_tree, sock->window.wnd_recv->buff_tree->root->key);
+            if(tmp==NULL){
+              _debug_("TMP NULL\n");
+            }
             while (tmp != NULL) {
               _debug_("Find buffered packet with seq: %d\n", tmp->header.seq_num);
               uint32_t next_data_len = tmp->header.plen - DEFAULT_HEADER_LEN;
@@ -309,9 +313,11 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
               sock->received_len += next_data_len;
               free(tmp->data);
               free(tmp);
+              tmp = NULL;
               sock->window.wnd_recv->expect_seq += next_data_len + 1;
               _debug_("expect_seq:%d\n", sock->window.wnd_recv->expect_seq);
               tmp = get_value(sock->window.wnd_recv->buff_tree, sock->window.wnd_recv->expect_seq);
+              print_tree(sock->window.wnd_recv->buff_tree);
             }
           }
         }

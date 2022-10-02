@@ -5,9 +5,24 @@
 #include "debug.h"
 
 
-struct myTree*new_tree(int key, void *data);
-struct myTree *find_key(struct myTree *root, int key);
-void * get_value(struct myTree *root, int key);
+// Create Node
+typedef struct treeNode{
+  int key;
+  void *value;
+  struct treeNode*left;
+  struct treeNode*right;
+  int height;
+}treeNode;
+
+typedef struct myTree{
+  struct treeNode *root;
+  uint32_t size;
+}myTree;
+
+
+tju_packet_t* get_value(struct myTree *root, int key);
 void free_tree(myTree* root);
-struct myTree *insert_tree(struct myTree *node, int key, void *value);
+void insert_key_value(myTree *node, int key, void *value);
+void print_tree(myTree *root);
+struct myTree* init_tree();
 #endif // !__TREE_H__

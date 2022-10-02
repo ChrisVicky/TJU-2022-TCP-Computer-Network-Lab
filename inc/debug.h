@@ -5,15 +5,15 @@
 #include "trace.h"
 #include <arpa/inet.h>
 #include "global.h"
-
 #include "pthread.h"
+#define DEBUG_FLAG 0
 extern pthread_mutex_t thread_print_lock;
 // Debug Message -- format:
 // [File:Line:Func]():Msg
 // if(0/1) Toggle
 #define _debug_(...) \
   do {                 \
-    if(1){           \
+    if(DEBUG_FLAG){           \
       pthread_mutex_lock(&thread_print_lock); \
       long time_time_print_debug=get_current_time();\
       fprintf(stderr, "(DEBUG) [%ld] [%-20s: %-4d: %-22s] \t", time_time_print_debug, __FILE__, \
@@ -22,10 +22,21 @@ extern pthread_mutex_t thread_print_lock;
     pthread_mutex_unlock(&thread_print_lock);}\
   } while (0)
 
+#define _debug_line_(...) \
+  do {                 \
+    if(DEBUG_FLAG){           \
+      pthread_mutex_lock(&thread_print_lock); \
+      long time_time_print_debug=get_current_time();\
+      fprintf(stderr, "(DEBUG) [%ld] [%-20s: %-4d: %-22s] \t--------------- ", time_time_print_debug, __FILE__, \
+                __LINE__, __func__); \
+      fprintf(stderr, __VA_ARGS__);             \
+      fprintf(stderr, " ---------------\n"); \
+    pthread_mutex_unlock(&thread_print_lock);}\
+  } while (0)
 
 #define _trace_(...) \
   do {                 \
-    if(1){           \
+    if(0){           \
       pthread_mutex_lock(&thread_print_lock); \
       long time_time_print_debug=get_current_time();\
       fprintf(stderr, "(TRACE) [%ld] [%-20s: %-4d: %-22s] \t", time_time_print_debug, __FILE__, \

@@ -74,15 +74,6 @@
 #define FIN_FLAG 3
 #define ACK_SYN_FLAG 4
 
-// Create Node
-typedef struct myTree {
-  int key;
-  void *value;
-  struct myTree *left;
-  struct myTree *right;
-  int height;
-}myTree;
-
 
 // TCP 发送窗口
 // 注释的内容如果想用就可以用 不想用就删掉 仅仅提供思路和灵感
@@ -106,7 +97,7 @@ typedef struct {
 //   char buf[TCP_RECVWN_SIZE];
 //   uint8_t marked[TCP_RECVWN_SIZE];
   uint32_t expect_seq;
-  myTree* buff_tree;
+  struct myTree* buff_tree;
 } receiver_window_t;
 
 // TCP 窗口 每个建立了连接的TCP都包括发送和接受两个窗口
@@ -120,8 +111,6 @@ typedef struct {
 	uint16_t port;
 } tju_sock_addr;
 
-// NOTE: 好像要现在这里 struct 一次才能正确在 tju_tcp_t 里面使用
-// struct sock_queue; 
 
 // TJU_TCP 结构体 保存TJU_TCP用到的各种数据
 typedef struct {

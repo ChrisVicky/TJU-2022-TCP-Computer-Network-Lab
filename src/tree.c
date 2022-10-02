@@ -2,8 +2,32 @@
 // An implementaion of AVL ==> 平衡搜索二叉树
 // 
 
+struct treeNode*minValuetreeNode(struct treeNode*node) {
+  struct treeNode*current = node;
+
+  while (current->left != NULL)
+    current = current->left;
+  return current;
+}
+
+void free_tree_node(struct treeNode* root){
+  _debug_("Start Free\n");
+  if(root==NULL) return;
+  if(root->left!=NULL) free_tree_node(root->left);
+  if(root->right!=NULL) free_tree_node(root->right);
+  if(root->value!=NULL)
+    free(root->value);
+  free(root);
+  return;
+}
+struct myTree* init_tree(){
+  struct myTree* ret = malloc(sizeof(struct myTree));
+  ret->root = NULL;
+  ret->size = 0;
+  return ret;
+}
 // Calculate height
-int height(myTree *N) {
+int height(treeNode*N) {
   if (N == NULL)
     return 0;
   return N->height;
@@ -13,7 +37,6 @@ int max(int a, int b) {
   return (a > b) ? a : b;
 }
 
-
 /**
 * @brief Create a new Tree(Node)
 *
@@ -22,9 +45,10 @@ int max(int a, int b) {
 *
 * @return 
 */
-struct myTree*new_tree(int key, void *data) {
-  struct myTree *node = (struct myTree*)
-    malloc(sizeof(struct myTree));
+struct treeNode*new_tree_node(int key, void *data) {
+  _debug_("New Node: %d\n" , key);
+  struct treeNode*node = (struct treeNode*)
+    malloc(sizeof(struct treeNode));
   node->key = key;
   node->value = data;
   node->left = NULL;
@@ -34,9 +58,9 @@ struct myTree*new_tree(int key, void *data) {
 }
 
 // Right rotate
-struct myTree *rightRotate(struct myTree *y) {
-  struct myTree *x = y->left;
-  struct myTree *T2 = x->right;
+struct treeNode *rightRotate(struct treeNode *y) {
+  struct treeNode *x = y->left;
+  struct treeNode *T2 = x->right;
 
   x->right = y;
   y->left = T2;
@@ -48,9 +72,9 @@ struct myTree *rightRotate(struct myTree *y) {
 }
 
 // Left rotate
-struct myTree *leftRotate(struct myTree *x) {
-  struct myTree *y = x->right;
-  struct myTree *T2 = y->left;
+struct treeNode *leftRotate(struct treeNode *x) {
+  struct treeNode *y = x->right;
+  struct treeNode *T2 = y->left;
 
   y->left = x;
   x->right = T2;
@@ -62,12 +86,72 @@ struct myTree *leftRotate(struct myTree *x) {
 }
 
 // Get the balance factor
-int getBalance(struct myTree *N) {
+int getBalance(struct treeNode *N) {
   if (N == NULL)
     return 0;
   return height(N->left) - height(N->right);
 }
 
+struct treeNode *remove_below(struct treeNode *root, int key){
+
+  // Find the node and delete it
+  if (root == NULL){
+    return root;
+  }
+
+  if (key < root->key){
+    root->left = remove_below(root->left, key);
+  }else if (key > root->key){
+    treeNode *tmp = root->right;
+    root->right = remove_below(tmp, key);
+    //TODO: REMOVE root and root->left;
+  }else {
+    //TODO: LEFT==NULL: REMOVE ROOT;
+    //TODO: LEFT!=NULL: REMOVE ROOT AND LEFT;
+    if ((root->left == NULL) || (root->right == NULL)) {
+      struct treeNode *temp = root->left ? root->left : root->right;
+      if (temp == NULL) {
+        temp = root;
+        root = NULL;
+      } else
+        *root = *temp;
+      free_tree_node(temp);
+    } else {
+      struct treeNode *temp = minValuetreeNode(root->right);
+
+      root->key = temp->key;
+
+      root->right = remove_below(root->right, temp->key);
+    }
+  }
+
+  if (root == NULL)
+    return root;
+
+  // Update the balance factor of each node and
+  // balance the tree
+  root->height = 1 + max(height(root->left),
+               height(root->right));
+
+  int balance = getBalance(root);
+  if (balance > 1 && getBalance(root->left) >= 0)
+    return rightRotate(root);
+
+  if (balance > 1 && getBalance(root->left) < 0) {
+    root->left = leftRotate(root->left);
+    return rightRotate(root);
+  }
+
+  if (balance < -1 && getBalance(root->right) <= 0)
+    return leftRotate(root);
+
+  if (balance < -1 && getBalance(root->right) > 0) {
+    root->right = rightRotate(root->right);
+    return leftRotate(root);
+  }
+
+  return root;
+}
 
 /**
 * @brief Inertion
@@ -78,17 +162,25 @@ int getBalance(struct myTree *N) {
 *
 * @return 
 */
-struct myTree *insert_tree(struct myTree *node, int key, void *value) {
-  // Find the correct position to insertmyTree the node and insertmyTree it
-  if (node == NULL)
-    return (new_tree(key, value));
+struct treeNode *insert_tree(struct treeNode *node, int key, void *value) {
+  // Find the correct position to inserttreeNode the node and inserttreeNode it
+  if (node == NULL){
+    return (new_tree_node(key, value));
+  }
 
-  if (key < node->key)
-    node->left = insert_tree(node->left, key, value);
-  else if (key > node->key)
-    node->right = insert_tree(node->right, key, value);
-  else
-    return node;
+  if (key < node->key){
+    if(node->left==NULL){
+      node->left =  insert_tree(node->left, key, value);
+    }else{
+      node->left = insert_tree(node->left, key, value);
+    }
+  }else if (key > node->key){
+    if(node->right==NULL){
+      node->right =  insert_tree(node->right, key, value);
+    }else{
+      node->right= insert_tree(node->right, key, value);
+    }
+  }else return node;
 
   // Update the balance factor of each node and
   // Balance the tree
@@ -115,14 +207,12 @@ struct myTree *insert_tree(struct myTree *node, int key, void *value) {
   return node;
 }
 
-struct myTree *minValuemyTree(struct myTree *node) {
-  struct myTree *current = node;
-
-  while (current->left != NULL)
-    current = current->left;
-
-  return current;
+void insert_key_value(myTree *tree, int key, void *value){
+  tree->root = insert_tree(tree->root, key, value);
+  print_tree(tree);
+  return ;
 }
+
 
 
 /**
@@ -133,10 +223,14 @@ struct myTree *minValuemyTree(struct myTree *node) {
 *
 * @return 
 */
-struct myTree *find_key(struct myTree *root, int key) {
+struct treeNode *find_key(struct treeNode *root, int key) {
+  _debug_("FIND KEY\n");
   // Find the node and delete it
-  if (root == NULL)
+  if (root == NULL){
+    _debug_("root null\n");
     return root;
+  }
+  _debug_("rootk:%d <-> key:%d\n",root->key, key);
 
   if (key < root->key)
     root->left = find_key(root->left, key);
@@ -145,17 +239,18 @@ struct myTree *find_key(struct myTree *root, int key) {
     root->right = find_key(root->right, key);
 
   else {
+        _debug_("Found key: %d\n" ,key);
     if ((root->left == NULL) || (root->right == NULL)) {
-      struct myTree *temp = root->left ? root->left : root->right;
+      struct treeNode *temp = root->left ? root->left : root->right;
 
       if (temp == NULL) {
         temp = root;
         root = NULL;
       } else
         *root = *temp;
-      free(temp);
+      free_tree_node(temp);
     } else {
-      struct myTree *temp = minValuemyTree(root->right);
+      struct treeNode *temp = minValuetreeNode(root->right);
 
       root->key = temp->key;
 
@@ -191,21 +286,51 @@ struct myTree *find_key(struct myTree *root, int key) {
   return root;
 }
 
-void * get_value(struct myTree *root, int key){
-  myTree *tmp = find_key(root, key);
+// Print the tree
+void printTree(treeNode*root, char indent[], int last) {
+  char tmp[1000];
+  memset(tmp, 0, sizeof(tmp));
+  memcpy(tmp, indent, strlen(indent));
+  if (root != NULL) {
+    printf("%s",indent);
+    if (last) {
+      printf("R----");
+      strcat(tmp, "   ");
+    } else {
+      printf("L----");
+      strcat(tmp, "|  ");
+    }
+    printf("%d\n" ,root->key);
+    printTree(root->left, tmp, FALSE);
+    printTree(root->right, tmp, TRUE);
+  }
+}
+
+void print_tree(myTree *root){
+  return;
+  char tmp[10000];
+  memset(tmp, 0, sizeof(tmp));
+  tmp[0] = '\t';
+  _debug_line_("Begin Tree Print");
+  printTree(root->root, tmp, TRUE);
+  _debug_line_("End Tree Print");
+}
+
+tju_packet_t* get_value(struct myTree *root, int key){
+  treeNode* tmp = find_key(root->root, key);
   if(tmp==NULL){
     _debug_("Key %d miss match\n" ,key);
     return NULL;
+  }else{
+    if(tmp->key != key){
+      return NULL;
+    }
+    return tmp->value;
   }
-  return tmp->value;
 }
 
-void free_tree(myTree* root){
-  if(root==NULL) return;
-  if(root->left!=NULL) free_tree(root->left);
-  if(root->right!=NULL) free_tree(root->right);
-  if(root->value!=NULL)
-    free(root->value);
-  free(root);
-  return;
+
+void free_tree(struct myTree* node){
+  free_tree_node(node->root);
+  free(node);
 }

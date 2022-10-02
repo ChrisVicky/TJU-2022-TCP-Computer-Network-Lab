@@ -41,6 +41,7 @@ uint32_t set_timer(struct timer_list *list, uint32_t sec, uint64_t nano_sec, voi
 
 
 void free_timer_node(timer_node* node){
+  printf("free_timer\n");
   free(node->event->timeout_at);
   free(node->event->create_at);
   free(node->event);
@@ -71,7 +72,6 @@ int check_timer(struct timer_list *list){
     uint64_t current_time = TIMESPEC2NANO(now);
     uint64_t timeout = TIMESPEC2NANO((*(iter->event->timeout_at)));
     if (timeout <= current_time) {
-      _debug_("Currenttime: %lu, timeout: %lu\n", current_time, timeout);
       if (prev == NULL) {
         list->head = iter->next;
       } else {
@@ -84,7 +84,7 @@ int check_timer(struct timer_list *list){
         list->tail = NULL;
       }
       struct timer_node *tmp = iter;
-      _debug_("timer %d timeout\n", tmp->id);
+      printf("timer %d timeout\n", tmp->id);
       void *result = tmp->event->callback(tmp->event->args);
       free_timer_node(tmp);
       list->size--;
