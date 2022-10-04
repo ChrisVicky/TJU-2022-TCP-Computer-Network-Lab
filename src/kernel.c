@@ -67,15 +67,15 @@ void sendToLayer3(char* packet_buf, int packet_len){
   conn.sin_port        = htons(20218);
   int rst;
   if(strcmp(hostname,"server")==0){
-    _debug_("向 172.17.0.2 发送信息\n");
+    // _debug_("向 172.17.0.2 发送信息\n");
     conn.sin_addr.s_addr = inet_addr("172.17.0.2");
     rst = sendto(BACKEND_UDPSOCKET_ID, packet_buf, packet_len, 0, (struct sockaddr*)&conn, sizeof(conn));
   }else if(strcmp(hostname,"client")==0){       
-    _debug_("向 172.17.0.3 发送信息\n");
+    // _debug_("向 172.17.0.3 发送信息\n");
     conn.sin_addr.s_addr = inet_addr("172.17.0.3");
     rst = sendto(BACKEND_UDPSOCKET_ID, packet_buf, packet_len, 0, (struct sockaddr*)&conn, sizeof(conn));
   }else{
-    _debug_("请不要改动hostname...\n");
+    // _debug_("请不要改动hostname...\n");
     exit(-1);
   }
 }

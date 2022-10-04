@@ -25,4 +25,5 @@ void free_tree(myTree* root);
 void insert_key_value(myTree *node, int key, void *value);
 void print_tree(myTree *root);
 struct myTree* init_tree();
+void remove_blow(struct treeNode* root, int key);
 #endif // !__TREE_H__

@@ -86,6 +86,10 @@ typedef struct {
   uint32_t prev_ack_count; // 记录冗余 ack 
   double estmated_rtt;
   double rto;
+  double dev_rtt;
+  uint16_t cwnd;
+  uint16_t swnd;
+  uint16_t rwnd;
 } sender_window_t;
 
 // TCP 接受窗口
@@ -98,6 +102,7 @@ typedef struct {
 //   uint8_t marked[TCP_RECVWN_SIZE];
   uint32_t expect_seq;
   struct myTree* buff_tree;
+  uint16_t rwnd;
 } receiver_window_t;
 
 // TCP 窗口 每个建立了连接的TCP都包括发送和接受两个窗口

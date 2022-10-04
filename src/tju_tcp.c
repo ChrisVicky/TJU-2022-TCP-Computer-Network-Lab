@@ -4,6 +4,7 @@
 
 // Multi Threads use the same debug function to show debug information
 pthread_mutex_t thread_print_lock = PTHREAD_MUTEX_INITIALIZER;
+extern sender_window_t global_sender;
 
 /*
 创建 TCP socket 
@@ -38,8 +39,10 @@ tju_tcp_t* tju_socket(){
   sock->window.wnd_send->window_size = INIT_WINDOW_SIZE;
   sock->window.wnd_send->prev_ack_count = 0;
   sock->window.wnd_send->prev_ack = 0;
-
+  sock->window.wnd_send->rwnd = 32*MAX_DLEN;
   sock->window.wnd_recv->buff_tree = init_tree(); 
+  sock->window.wnd_recv->rwnd = 32*MAX_DLEN;
+  sock->window.wnd_send->dev_rtt = 0;
 
   sock->half_queue = init_q();
   sock->full_queue = init_q();
@@ -150,6 +153,8 @@ void safe_packet_sender(tju_packet_t * packet){
 int tju_send(tju_tcp_t* sock, const void *buffer, int len){
   pthread_mutex_lock(&sock->send_lock);
   int count = len / MAX_DLEN;
+  sock->window.wnd_send->window_size = sock->window.wnd_send->rwnd;
+  trace_swnd(sock->window.wnd_send->window_size);
   for (int i = 0; i <= count; ++i) {
     int send_len = (i == count) ? len % MAX_DLEN : MAX_DLEN;
     if(send_len==0) break;
@@ -165,7 +170,6 @@ int tju_send(tju_tcp_t* sock, const void *buffer, int len){
     tju_packet_t *pkt = pop_q(sock->sending_queue);
     while ((sock->window.wnd_send->base + sock->window.wnd_send->window_size * MAX_DLEN) < (sock->window.wnd_send->nextseq)); // Make sure the other side has enough space 
     send_with_retransmit(sock, pkt, TRUE);
-    trace_send(pkt->header.seq_num, pkt->header.ack_num, pkt->header.flags);
   }
   pthread_mutex_unlock(&sock->send_lock);
   return 0;
@@ -183,7 +187,6 @@ int tju_recv(tju_tcp_t* sock, void *buffer, int len){
   }else{
     read_len = sock->received_len; // 读取sock->received_len长度的数据(全读出来)
   }
-
   memcpy(buffer, sock->received_buf, read_len);
 
   if(read_len < sock->received_len) { // 还剩下一些
@@ -197,24 +200,29 @@ int tju_recv(tju_tcp_t* sock, void *buffer, int len){
     sock->received_buf = NULL;
     sock->received_len = 0;
   }
+  sock->window.wnd_recv->rwnd = 32*MAX_DLEN - sock->received_len;
+  trace_rwnd(sock->window.wnd_recv->rwnd);
   pthread_mutex_unlock(&(sock->recv_lock)); // 解锁
 
-  return 0;
+  return read_len;
 }
 
 int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
 
-  uint32_t data_len = get_plen(pkt) - DEFAULT_HEADER_LEN;
 
   // 把收到的数据放到接受缓冲区
   pthread_mutex_lock(&(sock->recv_lock)); // 加锁
 
   _debug_("------------- start handle ----\n");
+  uint32_t data_len = get_plen(pkt) - DEFAULT_HEADER_LEN;
   uint8_t flag = get_flags(pkt);
   uint32_t seq = get_seq(pkt);
   uint32_t ack = get_ack(pkt);
+  uint16_t rwnd_pkt = get_advertised_window(pkt);
   if (flag & ACK_FLAG_MASK) {
     received_ack(ack, sock);
+    sock->window.wnd_send->rwnd = rwnd_pkt;
+    trace_rwnd(rwnd_pkt);
   }
   uint16_t src_port = get_src(pkt);
   uint16_t dst_port = get_dst(pkt);
@@ -223,7 +231,7 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
 
   tju_tcp_t *new_conn = NULL;
 
-  _debug_("============== STATE:%d, start handle======\n", sock->state);
+  // _debug_("============== STATE:%d, start handle======\n", sock->state);
 
   switch (sock->state) {
     case LISTEN:
@@ -233,17 +241,8 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
         sock->window.wnd_send->nextseq = INIT_SERVER_SEQ;
         sock->window.wnd_send->base = INIT_SERVER_SEQ;
         //SEND SYN ACK
-        tju_packet_t *pkt = create_packet(dst_port,
-                                          src_port,
-                                          sock->window.wnd_send->nextseq,
-                                          seq + 1,
-                                          DEFAULT_HEADER_LEN,
-                                          DEFAULT_HEADER_LEN,
-                                          SYN_FLAG_MASK | ACK_FLAG_MASK,
-                                          1,
-                                          0,
-                                          NULL,
-                                          0);
+        tju_packet_t *pkt = create_packet(dst_port, src_port, sock->window.wnd_send->nextseq,seq + 1,
+                                          DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, SYN_FLAG_MASK | ACK_FLAG_MASK, sock->window.wnd_recv->rwnd, 0, NULL, 0);
         send_with_retransmit(sock, pkt, TRUE);
         sock->window.wnd_send->nextseq += 1;
         _debug_("SYN_ACK SENT\n");
@@ -255,14 +254,13 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
       break;
     case SYN_SENT:
       if (flag == (SYN_FLAG_MASK | ACK_FLAG_MASK)) {
-        _debug_("SYN_ACK RECEIVED\n");
         sock->state = ESTABLISHED;
 
         //SEND ACK
         tju_packet_t *pkt = create_packet(dst_port, src_port, sock->window.wnd_send->nextseq, seq + 1,
-                                          DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, ACK_FLAG_MASK, 1, 0, NULL, 0);
+                                          DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, ACK_FLAG_MASK, sock->window.wnd_recv->rwnd, 0, NULL, 0);
         send_with_retransmit(sock, pkt, FALSE);
-        _debug_("ACK SENT\n");
+        free_packet(pkt);
         sock->window.wnd_recv->expect_seq = seq + 1;
         _debug_("expect_seq:%d\n", sock->window.wnd_recv->expect_seq);
       }
@@ -281,16 +279,21 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
       break;
     case ESTABLISHED:
       if (flag == NO_FLAG) {
-        //TODO: ADD ACK feed back
-        _debug_("PKT received with seq: %d, dlen: %d\n", seq, data_len);
+        _debug_("PKT received with seq: %d, dlen: %d, expect seq: %d\n", seq, data_len, sock->window.wnd_recv->expect_seq);
+
         tju_packet_t *ack_pkt = create_packet(dst_port, src_port, 0, seq + data_len + 1,
-                                              DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, ACK_FLAG_MASK, 1, 0, NULL, 0);
+                                              DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, ACK_FLAG_MASK, sock->window.wnd_recv->rwnd, 0, NULL, 0);
         send_with_retransmit(sock, ack_pkt, FALSE);
         free_packet(ack_pkt);
-        if (data_len > 0) {
-          insert_key_value(sock->window.wnd_recv->buff_tree, seq, buf_to_packet(pkt));
+
+        // NOTE: Check if seq is less than the last ack 
+        // NOTE: (in which case the pkt is saved, and should get dropped);
+        if(seq < sock->window.wnd_recv->expect_seq){
+          _debug_("Pkt Received, Drop pkt\n");
+        }else if (data_len > 0 ) {
           if (sock->window.wnd_recv->expect_seq == seq) {
-            _debug_("expect_seq:%d updated!\n", sock->window.wnd_recv->expect_seq);
+            // _debug_("expect_seq:%d updated!\n", sock->window.wnd_recv->expect_seq);
+            trace_delv(seq, data_len);
             if (sock->received_buf == NULL || sock->received_len == 0) {
               sock->received_buf = malloc(data_len);
             } else {
@@ -298,27 +301,33 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
             }
             memcpy(sock->received_buf + sock->received_len, pkt + DEFAULT_HEADER_LEN, data_len);
             sock->received_len += data_len;
+            sock->window.wnd_recv->rwnd = 32*MAX_DLEN - sock->received_len;
+            trace_rwnd(sock->window.wnd_recv->rwnd);
             sock->window.wnd_recv->expect_seq += data_len + 1;
-            _debug_("expect_seq:%d\n", sock->window.wnd_recv->expect_seq);
-            // tju_packet_t *tmp = get_value(sock->window.wnd_recv->buff_tree, sock->window.wnd_recv->expect_seq);
-            tju_packet_t *tmp = get_value(sock->window.wnd_recv->buff_tree, sock->window.wnd_recv->buff_tree->root->key);
-            if(tmp==NULL){
-              _debug_("TMP NULL\n");
-            }
+            _debug_("seq: %d pkt in receive buff, waiting for collecting, expect_seq:%d\n",seq, sock->window.wnd_recv->expect_seq);
+
+            // NOTE: Dealing with situations where older packets arrived earlier
+            tju_packet_t *tmp = get_value(sock->window.wnd_recv->buff_tree, sock->window.wnd_recv->expect_seq);
+            // print_tree(sock->window.wnd_recv->buff_tree);
             while (tmp != NULL) {
               _debug_("Find buffered packet with seq: %d\n", tmp->header.seq_num);
               uint32_t next_data_len = tmp->header.plen - DEFAULT_HEADER_LEN;
               sock->received_buf = realloc(sock->received_buf, sock->received_len + next_data_len);
               memcpy(sock->received_buf + sock->received_len, tmp->data, next_data_len);
+              trace_delv(tmp->header.seq_num, next_data_len);
               sock->received_len += next_data_len;
+              trace_rwnd(32*MAX_DLEN - sock->received_len);
               free(tmp->data);
               free(tmp);
               tmp = NULL;
               sock->window.wnd_recv->expect_seq += next_data_len + 1;
               _debug_("expect_seq:%d\n", sock->window.wnd_recv->expect_seq);
               tmp = get_value(sock->window.wnd_recv->buff_tree, sock->window.wnd_recv->expect_seq);
-              print_tree(sock->window.wnd_recv->buff_tree);
+              // print_tree(sock->window.wnd_recv->buff_tree);
             }
+          }else{
+            // NOTE: Only when seq mismatch, indicating that Older Packet arrived;
+            insert_key_value(sock->window.wnd_recv->buff_tree, seq, buf_to_packet(pkt));
           }
         }
       } else if (flag == ACK_FLAG_MASK) {

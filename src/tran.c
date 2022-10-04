@@ -3,8 +3,10 @@
 
 #define min(x,y) ((x)<(y)?(x):(y))
 #define max(x,y) ((x)>(y)?(x):(y))
+#define abs_minus(x,y) ((x)<(y)?((y)-(x)):((x)-(y)))
 
 uint32_t ack_id_hash[100000000];
+sender_window_t global_sender;
 
 pthread_cond_t packet_available = PTHREAD_COND_INITIALIZER;
 pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
@@ -12,30 +14,39 @@ pthread_mutex_t cond_mutex = PTHREAD_MUTEX_INITIALIZER;
 timer_list * timers = NULL;
 
 void init_retransmit_timer() {
+  global_sender.estmated_rtt = INIT_RTT;
+  global_sender.dev_rtt = 0;
+  global_sender.rto = INIT_RTT;
   timers = init_timer_list();
   memset(ack_id_hash, 0, sizeof(ack_id_hash));
   start_work_thread(timers);
 }
 
 void update_rtt(double rtt, tju_tcp_t *tju_tcp) {
-  struct in_addr *tmp = malloc(sizeof(struct in_addr));
-  memcpy(tmp, &tju_tcp->bind_addr.ip, sizeof(struct in_addr));
   _debug_("start to update rtt :\n");
   _ip_port_(tju_tcp->bind_addr);
-  free(tmp);
-  double srtt = tju_tcp->window.wnd_send->estmated_rtt;
-  tju_tcp->window.wnd_send->estmated_rtt = (RTT_ALPHA * srtt) + (1 - RTT_ALPHA) * rtt;
-  tju_tcp->window.wnd_send->rto = min(RTT_UBOUND, max(RTT_LBOUND, RTT_BETA * srtt));
+  double ertt = global_sender.estmated_rtt;
+  double srtt = rtt; 
+  double dev = global_sender.dev_rtt;
+  global_sender.estmated_rtt = (RTT_ALPHA * srtt) + (1 - RTT_ALPHA) * ertt;
+  global_sender.dev_rtt = RTT_BETA * dev + (1-RTT_BETA) * abs_minus(srtt, ertt);
+  global_sender.rto = min(RTT_UBOUND, max(RTT_LBOUND, global_sender.estmated_rtt + 4 * global_sender.dev_rtt));
+// "[SampleRTT:%f EstimatedRTT:%f DeviationRTT:%f TimeoutInterval:%f]\n"
+  trace_rtts(srtt, global_sender.estmated_rtt, 
+             global_sender.dev_rtt ,global_sender.rto);
 }
 
 void *retransmit(transmit_arg_t *args) {
   // TODO: Check if there need another timer set
   tju_tcp_t *tju_tcp = (tju_tcp_t *) args->sock;
   tju_packet_t *pkt = args->pkt;
+  tju_tcp->window.wnd_send->rto = global_sender.rto;
+  tju_tcp->window.wnd_send->estmated_rtt = global_sender.estmated_rtt;
+  tju_tcp->window.wnd_send->dev_rtt = global_sender.dev_rtt;
   uint32_t id = set_timer_without_mutex(timers,0,SEC2NANO(tju_tcp->window.wnd_send->rto),(void *(*)(void *)) retransmit,args);
   uint16_t dlen = pkt->header.plen - pkt->header.hlen;
   ack_id_hash[pkt->header.seq_num + dlen + 1] = id;
-  printf("transmit : set timer %d expecting ack: %d, timeout at %f\n",id,pkt->header.seq_num + dlen + 1,tju_tcp->window.wnd_send->rto);
+  _debug_("transmit : set timer %d expecting ack: %d, timeout at %f\n",id,pkt->header.seq_num + dlen + 1,tju_tcp->window.wnd_send->rto);
   safe_packet_sender(pkt);
   return NULL;
 }
@@ -44,6 +55,9 @@ uint32_t send_with_retransmit(tju_tcp_t *sock, tju_packet_t *pkt, int requiring_
   if (requiring_ack) {
     uint32_t id = 0;
     transmit_arg_t *args = malloc(sizeof(transmit_arg_t));
+    sock->window.wnd_send->dev_rtt = global_sender.dev_rtt;
+    sock->window.wnd_send->estmated_rtt = global_sender.estmated_rtt;
+    sock->window.wnd_send->rto = global_sender.rto;
     args->pkt = pkt;
     args->sock = sock;
     id = set_timer(timers, 0, SEC2NANO(sock->window.wnd_send->rto), (void *(*)(void *)) retransmit, args);
@@ -51,8 +65,9 @@ uint32_t send_with_retransmit(tju_tcp_t *sock, tju_packet_t *pkt, int requiring_
     ack_id_hash[pkt->header.seq_num + dlen + 1] = id;
     // printf("set timer %d expecting ack: %d, timeout at %f\n", id, pkt->header.seq_num + dlen + 1, sock->window.wnd_send->rto);
   }
+  trace_send(pkt->header.seq_num, pkt->header.ack_num, pkt->header.flags);
   safe_packet_sender(pkt);
-  _debug_("Sending Packet: ack:%d, seq:%d\n", pkt->header.ack_num, pkt->header.seq_num);
+  // _debug_("Sending Packet: ack:%d, seq:%d\n", pkt->header.ack_num, pkt->header.seq_num);
   return 0;
 }
 

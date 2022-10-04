@@ -34,6 +34,17 @@ extern pthread_mutex_t thread_print_lock;
     pthread_mutex_unlock(&thread_print_lock);}\
   } while (0)
 
+#define _line_(...) \
+  do {                 \
+    if(DEBUG_FLAG){           \
+      pthread_mutex_lock(&thread_print_lock); \
+      long time_time_print_debug=get_current_time();\
+      fprintf(stderr, "============================= ");\
+      fprintf(stderr, __VA_ARGS__);             \
+      fprintf(stderr, " =============================\n"); \
+    pthread_mutex_unlock(&thread_print_lock);}\
+  } while (0)
+
 #define _trace_(...) \
   do {                 \
     if(0){           \

@@ -1,4 +1,4 @@
-#include "../inc/tju_tcp.h"
+#include "tju_tcp.h"
 #include <string.h>
 #include <signal.h>
 #include <stdio.h>
@@ -7,8 +7,7 @@
 #define EACHSIZE 10*MIN_LEN
 #define MAXSIZE 50*MIN_LEN*MIN_LEN
 
-int t_times = 1;
-// int t_times = 5000;
+int t_times = 5000;
 char allbuf[MAXSIZE] = {'\0'}; //设置全局变量
 
 void fflushbeforeexit(int signo){
@@ -28,7 +27,7 @@ void fflushbeforeexit(int signo){
 
 void sleep_no_wake(int sec){  
     do{        
-        printf("Interrupted :%d\n" ,sec);
+        printf("Interrupted\n");
         sec =sleep(sec);
     }while(sec > 0);             
 }
@@ -53,8 +52,7 @@ int main(int argc, char **argv) {
 
     tju_tcp_t* new_conn = tju_accept(my_server);
 
-  _debug_("------------------- Connection Established <<<<<<<<<<<<<<<< \n");
-    sleep_no_wake(3);
+    sleep_no_wake(8);
 
     int alllen = 0;
     int print_s = 0;
@@ -90,7 +88,7 @@ int main(int argc, char **argv) {
     size_t ret = fwrite(allbuf, sizeof(char), sizeof(allbuf), wfile);
     fclose(wfile);
 
-    sleep_no_wake(10);
+    sleep_no_wake(100);
     
     return EXIT_SUCCESS;
 }

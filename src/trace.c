@@ -4,17 +4,35 @@
 
 FILE *trace_file;
 pthread_mutex_t trace_mutex = PTHREAD_MUTEX_INITIALIZER;
+#define TRACE_IT
+
+#ifdef TRACE_IT
 
 /**
 * @brief  Touch a new Trace File 
 *         while Removing the old one.
 */
 void init_trace() {
-  char hostname[256];
-  gethostname(hostname, 256);
-  strcat(hostname, ".event.trace");
-  remove(hostname);
-  trace_file = fopen(hostname, "w");
+  char filename[256];
+  memset(filename, 0, sizeof(filename));
+  char *tmp = getcwd(NULL, 256);
+  _debug_(">%s<\n" ,tmp);
+  char hostname[8];
+  gethostname(hostname, 8);
+  _debug_("host: %s\n",hostname);
+  strcat(filename, hostname);
+  _debug_("create file: %s\n",filename);
+  strcat(filename, ".event.trace");
+  _debug_("create file: %s\n",filename);
+  remove(filename);
+  trace_file = NULL;
+  trace_file = fopen(filename, "w");
+  if(trace_file==NULL){
+    _debug_("Open File error\n");
+    exit(1);
+  }
+  _debug_("create file: %s\n",filename);
+
 }
 
 long get_current_time(){
@@ -32,8 +50,8 @@ void trace_send(uint32_t seq, uint32_t ack, uint32_t flag){
   if(flag & ACK_FLAG_MASK) strcat(flag_str, "ACK|");
   if(flag & FIN_FLAG_MASK) strcat(flag_str, "FIN|");
   flag_str[strlen(flag_str)-1] = 0;
-  fprintf(trace_file, "[%ld] [SEND] [seq:%d ack:%d flag:%s]\n" ,get_current_time(), 0, 0, flag_str);
-  _trace_("[%ld] [SEND] [seq:%d ack:%d flag:%s]\n" ,get_current_time(), 0, 0, flag_str);
+  fprintf(trace_file, "[%ld] [SEND] [seq:%d ack:%d flag:%s]\n" ,get_current_time(), seq, ack, flag_str);
+  _trace_("[%ld] [SEND] [seq:%d ack:%d flag:%s]\n" ,get_current_time(), seq, ack, flag_str);
   pthread_mutex_unlock(&trace_mutex);
   return;
 }
@@ -91,3 +109,21 @@ void trace_delv(uint32_t seq, uint32_t size){
   _trace_("[%ld] [DELV] [seq:%d size:%d]\n",get_current_time(),seq,size);
   pthread_mutex_unlock(&trace_mutex);
 }
+#else
+
+void init_trace(){}
+
+long get_current_time(){return 0;}
+
+void trace_send(uint32_t seq, uint32_t ack, uint32_t flag){}
+void trace_recv(uint32_t seq, uint32_t ack, uint32_t flag){}
+
+void trace_cwnd(uint32_t type, uint32_t size){}
+void trace_rwnd(uint32_t size){}
+
+void trace_swnd(uint32_t size){}
+void trace_rtts(double s, double e, double d, double t){}
+void trace_delv(uint32_t seq, uint32_t size){}
+
+#endif
+

@@ -1,20 +1,23 @@
+
 #include "../inc/tree.h"
 // An implementaion of AVL ==> 平衡搜索二叉树
 // 
 
-struct treeNode*minValuetreeNode(struct treeNode*node) {
+struct treeNode*minValuetreeNode(struct treeNode*node, struct treeNode**pre) {
   struct treeNode*current = node;
-
-  while (current->left != NULL)
+  while (current->left != NULL){
+    *pre = current;
     current = current->left;
+  }
   return current;
 }
 
 void free_tree_node(struct treeNode* root){
   _debug_("Start Free\n");
   if(root==NULL) return;
-  if(root->left!=NULL) free_tree_node(root->left);
-  if(root->right!=NULL) free_tree_node(root->right);
+  _debug_("Root Not NULL: %d\n" ,root->key);
+  if(root->left!=NULL) {_debug_("free Left\n");free_tree_node(root->left);}
+  if(root->right!=NULL) {_debug_("free right\n");free_tree_node(root->right);}
   if(root->value!=NULL)
     free(root->value);
   free(root);
@@ -92,67 +95,6 @@ int getBalance(struct treeNode *N) {
   return height(N->left) - height(N->right);
 }
 
-struct treeNode *remove_below(struct treeNode *root, int key){
-
-  // Find the node and delete it
-  if (root == NULL){
-    return root;
-  }
-
-  if (key < root->key){
-    root->left = remove_below(root->left, key);
-  }else if (key > root->key){
-    treeNode *tmp = root->right;
-    root->right = remove_below(tmp, key);
-    //TODO: REMOVE root and root->left;
-  }else {
-    //TODO: LEFT==NULL: REMOVE ROOT;
-    //TODO: LEFT!=NULL: REMOVE ROOT AND LEFT;
-    if ((root->left == NULL) || (root->right == NULL)) {
-      struct treeNode *temp = root->left ? root->left : root->right;
-      if (temp == NULL) {
-        temp = root;
-        root = NULL;
-      } else
-        *root = *temp;
-      free_tree_node(temp);
-    } else {
-      struct treeNode *temp = minValuetreeNode(root->right);
-
-      root->key = temp->key;
-
-      root->right = remove_below(root->right, temp->key);
-    }
-  }
-
-  if (root == NULL)
-    return root;
-
-  // Update the balance factor of each node and
-  // balance the tree
-  root->height = 1 + max(height(root->left),
-               height(root->right));
-
-  int balance = getBalance(root);
-  if (balance > 1 && getBalance(root->left) >= 0)
-    return rightRotate(root);
-
-  if (balance > 1 && getBalance(root->left) < 0) {
-    root->left = leftRotate(root->left);
-    return rightRotate(root);
-  }
-
-  if (balance < -1 && getBalance(root->right) <= 0)
-    return leftRotate(root);
-
-  if (balance < -1 && getBalance(root->right) > 0) {
-    root->right = rightRotate(root->right);
-    return leftRotate(root);
-  }
-
-  return root;
-}
-
 /**
 * @brief Inertion
 *
@@ -185,7 +127,7 @@ struct treeNode *insert_tree(struct treeNode *node, int key, void *value) {
   // Update the balance factor of each node and
   // Balance the tree
   node->height = 1 + max(height(node->left),
-               height(node->right));
+                         height(node->right));
 
   int balance = getBalance(node);
   if (balance > 1 && key < node->left->key)
@@ -209,10 +151,82 @@ struct treeNode *insert_tree(struct treeNode *node, int key, void *value) {
 
 void insert_key_value(myTree *tree, int key, void *value){
   tree->root = insert_tree(tree->root, key, value);
+  tree->size ++;
   print_tree(tree);
   return ;
 }
 
+
+// struct treeNode *remove_key_below(struct treeNode *root, int key) {
+//   _debug_("FIND KEY\n");
+//   // Find the node and delete it
+//   if (root == NULL){
+//     _debug_("root null\n");
+//     return root;
+//   }
+//   _debug_("rootk:%d <-> key:%d\n",root->key, key);
+//
+//   if (key < root->key)
+//     root->left = remove_key_below(root->left, key);
+//   else {
+//       // WHEN key >= root->key ==> Remove All 
+//       _debug_("Found key: %d\n" ,key);
+//       if ((root->left == NULL) || (root->right == NULL)) {
+//         struct treeNode *temp = root->left ? root->left : root->right;
+//
+//         if (temp == NULL) {
+//           temp = root;
+//           root = NULL;
+//         } else
+//         *root = *temp;
+//         free_tree_node(temp);
+//       } else {
+//         struct treeNode *temp = minValuetreeNode(root->right);
+//
+//         root->key = temp->key;
+//
+//         root->right = remove_key_below(root->right, temp->key);
+//       }
+//     }
+//
+//   if (root == NULL)
+//     return root;
+//
+//   // Update the balance factor of each node and
+//   // balance the tree
+//   root->height = 1 + max(height(root->left),
+//                          height(root->right));
+//
+//   int balance = getBalance(root);
+//   if (balance > 1 && getBalance(root->left) >= 0)
+//     return rightRotate(root);
+//
+//
+//   if (balance > 1 && getBalance(root->left) < 0) {
+//     root->left = leftRotate(root->left);
+//     return rightRotate(root);
+//   }
+//
+//   if (balance < -1 && getBalance(root->right) <= 0)
+//     return leftRotate(root);
+//
+//   if (balance < -1 && getBalance(root->right) > 0) {
+//     root->right = rightRotate(root->right);
+//     return leftRotate(root);
+//   }
+//
+//   return root;
+// }
+//
+// void remove_blow(struct treeNode* root, int key){
+//   // Recursively Remove ALl Nodes with key less than key
+//   struct treeNode *ret = remove_key_below(root, key);
+//   while(ret!=NULL){
+//     _debug_("Recursively Remove Node, key: %d <-> %d\n" ,key,ret->key);
+//     ret = remove_key_below(root, key);
+//   }
+//   return ;
+// }
 
 
 /**
@@ -223,38 +237,56 @@ void insert_key_value(myTree *tree, int key, void *value){
 *
 * @return 
 */
-struct treeNode *find_key(struct treeNode *root, int key) {
-  _debug_("FIND KEY\n");
-  // Find the node and delete it
+struct treeNode *find_key(struct treeNode *root, int key, struct treeNode** ret, int flag) {
   if (root == NULL){
-    _debug_("root null\n");
     return root;
   }
   _debug_("rootk:%d <-> key:%d\n",root->key, key);
-
-  if (key < root->key)
-    root->left = find_key(root->left, key);
-
-  else if (key > root->key)
-    root->right = find_key(root->right, key);
-
-  else {
-        _debug_("Found key: %d\n" ,key);
+  if (key < root->key){
+    root->left = find_key(root->left, key, ret, flag);
+  }else if (key > root->key){
+    root->right = find_key(root->right, key, ret, flag);
+  }else {
+    _debug_("Found key: %d\n" ,key);
     if ((root->left == NULL) || (root->right == NULL)) {
+      if(root->left == NULL && root->right==NULL){
+        _debug_("key: %d's Left and Right == NULL\n",key);
+      }else if(root->left == NULL){
+        _debug_("key: %d's Left == NULL\n",key);
+      }else{
+        _debug_("key: %d's Right == NULL\n",key);
+      }
+      if(flag){
+        _debug_("MEMCPY\n");
+        if(*ret == NULL) *ret = malloc(sizeof(treeNode));
+        memcpy(*ret, root, sizeof(treeNode));
+        _debug_("MEMCPY\n");
+      }
+      // WARN: Potential Memory Leaking
       struct treeNode *temp = root->left ? root->left : root->right;
-
       if (temp == NULL) {
         temp = root;
         root = NULL;
-      } else
+      } else{
         *root = *temp;
-      free_tree_node(temp);
+      }
     } else {
-      struct treeNode *temp = minValuetreeNode(root->right);
+      struct treeNode *pre;
+      struct treeNode *temp = minValuetreeNode(root->right, &pre);
 
+      if(pre!=NULL){
+        pre->left = NULL; // TODO: check 这个去除的对不对
+      }
+      if(flag){
+        _debug_("MEMCPY\n");
+        if(*ret == NULL) *ret = malloc(sizeof(treeNode));
+        memcpy(*ret, root, sizeof(treeNode));
+        _debug_("MEMCPY\n");
+      }
       root->key = temp->key;
+      memcpy(root->value, temp->value, sizeof(tju_packet_t));
+      root->right = find_key(root->right, temp->key, ret, 0); // 关闭内容拷贝
 
-      root->right = find_key(root->right, temp->key);
     }
   }
 
@@ -264,7 +296,7 @@ struct treeNode *find_key(struct treeNode *root, int key) {
   // Update the balance factor of each node and
   // balance the tree
   root->height = 1 + max(height(root->left),
-               height(root->right));
+                         height(root->right));
 
   int balance = getBalance(root);
   if (balance > 1 && getBalance(root->left) >= 0)
@@ -307,25 +339,29 @@ void printTree(treeNode*root, char indent[], int last) {
 }
 
 void print_tree(myTree *root){
-  return;
-  char tmp[10000];
-  memset(tmp, 0, sizeof(tmp));
-  tmp[0] = '\t';
-  _debug_line_("Begin Tree Print");
-  printTree(root->root, tmp, TRUE);
-  _debug_line_("End Tree Print");
+  if(!DEBUG_FLAG) return;
+  if(1){
+    _debug_("Current Tree Number %d",root->size);
+    return ;
+  }else{
+
+    char tmp[10000];
+    memset(tmp, 0, sizeof(tmp));
+    tmp[0] = '\t';
+    _debug_line_("Begin Tree Print");
+    printTree(root->root, tmp, TRUE);
+    _debug_line_("End Tree Print");
+  }
 }
 
 tju_packet_t* get_value(struct myTree *root, int key){
-  treeNode* tmp = find_key(root->root, key);
-  if(tmp==NULL){
-    _debug_("Key %d miss match\n" ,key);
+  treeNode* ret = NULL;
+  root->root = find_key(root->root, key, &ret, 1);
+  if(ret==NULL){
     return NULL;
   }else{
-    if(tmp->key != key){
-      return NULL;
-    }
-    return tmp->value;
+    root->size --;
+    return ret->value;
   }
 }
 

@@ -32,6 +32,11 @@ server: $(OBJS)
 client:
 	$(CC) $(FLAGS) ./src/client.c -o client $(OBJS) 
 
+test_tree: clean $(OBJS)
+	$(CC) $(FLAGS) ./src/test_tree.c -o test_tree $(OBJS) 
+	./test_tree
+	
+
 test: clean server client
 	./test/test establish
 
