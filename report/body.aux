@@ -1,0 +1,144 @@
+\relax 
+\providecommand\hyper@newdestlabel[2]{}
+\@writefile{toc}{\contentsline {chapter}{\numberline {第一章\hspace  {.3em}}任务要求}{1}{section*.3}\protected@file@percent }
+\@writefile{lof}{\addvspace {10.0pt}}
+\@writefile{lot}{\addvspace {10.0pt}}
+\@writefile{loa}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {section}{\numberline {1.1}可靠数据传输}{1}{section*.4}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1.2}流量控制}{1}{section*.5}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {1.3}环境和语言}{1}{section*.6}\protected@file@percent }
+\newlabel{fig:ubuntu}{{1.3}{1}{环境和语言}{section*.6}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {1-1}{\ignorespaces 测试服务器 配置信息}}{1}{section*.7}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {第二章\hspace  {.3em}}总体设计}{2}{section*.8}\protected@file@percent }
+\@writefile{lof}{\addvspace {10.0pt}}
+\@writefile{lot}{\addvspace {10.0pt}}
+\@writefile{loa}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {section}{\numberline {2.1}可靠数据传输相关设计}{2}{section*.9}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {2.2}模块功能设计}{2}{section*.10}\protected@file@percent }
+\newlabel{fig:flow}{{2.2}{3}{模块功能设计}{section*.10}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {2-1}{\ignorespaces 可靠数据传输相关功能设计总览}}{3}{section*.11}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {第三章\hspace  {.3em}}连接建立的设计}{4}{section*.12}\protected@file@percent }
+\@writefile{lof}{\addvspace {10.0pt}}
+\@writefile{lot}{\addvspace {10.0pt}}
+\@writefile{loa}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {section}{\numberline {3.1}状态机设计}{4}{section*.13}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.1}Client 端状态机设计}{4}{section*.14}\protected@file@percent }
+\newlabel{fig:client_fsm}{{3.1.1}{4}{Client 端状态机设计}{section*.14}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3-1}{\ignorespaces Client FSM}}{4}{section*.15}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {3.1.2}Server 端状态机设计}{4}{section*.16}\protected@file@percent }
+\newlabel{fig:server_fsm}{{3.1.2}{5}{Server 端状态机设计}{section*.16}{}}
+\@writefile{lof}{\contentsline {figure}{\numberline {3-2}{\ignorespaces Server FSM}}{5}{section*.17}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.2}超时重传机制}{5}{section*.18}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {3.3}RTO 计算法则}{5}{section*.19}\protected@file@percent }
+\newlabel{eq:est}{{3.3}{6}{RTO 计算法则}{equation.3.3.1}{}}
+\newlabel{eq:rto}{{3.3}{6}{RTO 计算法则}{equation.3.3.3}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {3.4}流量控制}{6}{section*.20}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {第四章\hspace  {.3em}}可靠数据传输的实现}{7}{section*.21}\protected@file@percent }
+\@writefile{lof}{\addvspace {10.0pt}}
+\@writefile{lot}{\addvspace {10.0pt}}
+\@writefile{loa}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {section}{\numberline {4.1}Client 端}{7}{section*.22}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.1.1}Tju\_Send 实现}{7}{section*.23}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.2}Server 端}{7}{section*.24}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.2.1}Tju\_Recv 实现}{7}{section*.25}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {4.3}通用}{7}{section*.26}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.1}Socket 数据结构}{7}{section*.27}\protected@file@percent }
+\@writefile{toc}{\contentsline {subsection}{\numberline {4.3.2}超时重传机制}{7}{section*.28}\protected@file@percent }
+\@writefile{toc}{\contentsline {chapter}{\numberline {第五章\hspace  {.3em}}连接建立的功能测试与结果分析}{9}{section*.29}\protected@file@percent }
+\@writefile{lof}{\addvspace {10.0pt}}
+\@writefile{lot}{\addvspace {10.0pt}}
+\@writefile{loa}{\addvspace {10\p@ }}
+\@writefile{toc}{\contentsline {section}{\numberline {5.1}测试环境及方法}{9}{section*.30}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.2}RTO动态调整}{9}{section*.31}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5-1}{\ignorespaces 网站测试结果}}{9}{section*.32}\protected@file@percent }
+\newlabel{fig:LOG}{{5-1}{9}{RTO动态调整}{section*.32}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.3}可靠数据传输}{9}{section*.33}\protected@file@percent }
+\gdef \LT@i {\LT@entry 
+    {1}{60.0pt}\LT@entry 
+    {1}{180.0pt}}
+\@writefile{lof}{\contentsline {figure}{\numberline {5-2}{\ignorespaces 网站测试结果}}{10}{section*.34}\protected@file@percent }
+\newlabel{fig:recvLog}{{5-2}{10}{可靠数据传输}{section*.34}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.4}流量控制}{10}{section*.35}\protected@file@percent }
+\@writefile{toc}{\contentsline {section}{\numberline {5.5}AutoLab 测试}{10}{section*.36}\protected@file@percent }
+\@writefile{lof}{\contentsline {figure}{\numberline {5-3}{\ignorespaces 网站测试结果}}{10}{section*.37}\protected@file@percent }
+\newlabel{fig:net_test}{{5-3}{10}{AutoLab 测试}{section*.37}{}}
+\@writefile{toc}{\contentsline {section}{\numberline {5.6}人员分工}{10}{section*.38}\protected@file@percent }
+\@writefile{lot}{\contentsline {table}{\numberline {5-1}{人员分工表}}{10}{section*.39}\protected@file@percent }
+\newlabel{tab:fengong}{{5-1}{10}{人员分工表}{section*.39}{}}
+\@setckpt{body}{
+\setcounter{page}{11}
+\setcounter{equation}{0}
+\setcounter{enumi}{3}
+\setcounter{enumii}{2}
+\setcounter{enumiii}{0}
+\setcounter{enumiv}{0}
+\setcounter{footnote}{0}
+\setcounter{mpfootnote}{0}
+\setcounter{part}{0}
+\setcounter{chapter}{5}
+\setcounter{section}{6}
+\setcounter{subsection}{0}
+\setcounter{subsubsection}{0}
+\setcounter{paragraph}{0}
+\setcounter{subparagraph}{0}
+\setcounter{figure}{3}
+\setcounter{table}{1}
+\setcounter{parentequation}{0}
+\setcounter{LT@tables}{1}
+\setcounter{LT@chunks}{1}
+\setcounter{subfigure}{0}
+\setcounter{lofdepth}{1}
+\setcounter{subtable}{0}
+\setcounter{lotdepth}{1}
+\setcounter{@contsubnum}{0}
+\setcounter{newflo@tctr}{4}
+\setcounter{NAT@ctr}{0}
+\setcounter{endNonectr}{12}
+\setcounter{currNonectr}{0}
+\setcounter{lstnumber}{1}
+\setcounter{AlgoLine}{0}
+\setcounter{algocfline}{0}
+\setcounter{algocfproc}{0}
+\setcounter{algocf}{0}
+\setcounter{ALC@unique}{0}
+\setcounter{ALC@line}{0}
+\setcounter{ALC@rem}{0}
+\setcounter{ALC@depth}{0}
+\setcounter{Item}{19}
+\setcounter{Hfootnote}{0}
+\setcounter{Hy@AnnotLevel}{0}
+\setcounter{bookmark@seq@number}{31}
+\setcounter{lstlisting}{0}
+\setcounter{section@level}{0}
+\setcounter{pubctr}{0}
+\setcounter{currtheoremctr}{0}
+\setcounter{endtheoremctr}{0}
+\setcounter{theorem}{0}
+\setcounter{currlemmactr}{0}
+\setcounter{endlemmactr}{0}
+\setcounter{lemma}{0}
+\setcounter{curraxiomctr}{0}
+\setcounter{endaxiomctr}{0}
+\setcounter{axiom}{0}
+\setcounter{currpropositionctr}{0}
+\setcounter{endpropositionctr}{0}
+\setcounter{proposition}{0}
+\setcounter{currpropctr}{0}
+\setcounter{endpropctr}{0}
+\setcounter{prop}{0}
+\setcounter{currcorollaryctr}{0}
+\setcounter{endcorollaryctr}{0}
+\setcounter{corollary}{0}
+\setcounter{currdefinitionctr}{0}
+\setcounter{enddefinitionctr}{0}
+\setcounter{definition}{0}
+\setcounter{currconjecturectr}{0}
+\setcounter{endconjecturectr}{0}
+\setcounter{conjecture}{0}
+\setcounter{currexamplectr}{0}
+\setcounter{endexamplectr}{0}
+\setcounter{example}{0}
+\setcounter{currremarkctr}{0}
+\setcounter{endremarkctr}{0}
+\setcounter{remark}{0}
+}

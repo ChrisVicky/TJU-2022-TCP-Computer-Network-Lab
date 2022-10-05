@@ -1,0 +1,135 @@
+!_TAG_FILE_FORMAT	2	/extended format; --format=1 will not append ;" to lines/
+!_TAG_FILE_SORTED	1	/0=unsorted, 1=sorted, 2=foldcase/
+!_TAG_OUTPUT_EXCMD	mixed	/number, pattern, mixed, or combineV2/
+!_TAG_OUTPUT_FILESEP	slash	/slash or backslash/
+!_TAG_OUTPUT_MODE	u-ctags	/u-ctags or e-ctags/
+!_TAG_PATTERN_LENGTH_LIMIT	96	/0 for no limit/
+!_TAG_PROC_CWD	/home/christopher/Programme/Web/netProj/tju_tcp/	//
+!_TAG_PROGRAM_AUTHOR	Universal Ctags Team	//
+!_TAG_PROGRAM_NAME	Universal Ctags	/Derived from Exuberant Ctags/
+!_TAG_PROGRAM_URL	https://ctags.io/	/official site/
+!_TAG_PROGRAM_VERSION	5.9.0	/p5.9.20220828.0/
+$(BUILD_DIR)/%.o	Makefile	/^$(BUILD_DIR)\/%.o: $(SRC_DIR)\/%.c $/;"	t
+ACK_FLAG_MASK	inc/tju_packet.h	/^#define ACK_FLAG_MASK /;"	d
+BACKEND_UDPSOCKET_ID	inc/kernel.h	/^int BACKEND_UDPSOCKET_ID;$/;"	v	typeref:typename:int
+BUILD_DIR	Makefile	/^BUILD_DIR = $(TOP_DIR)\/build$/;"	m
+CC	Makefile	/^CC=gcc$/;"	m
+CLOSED	inc/global.h	/^#define CLOSED /;"	d
+CLOSE_WAIT	inc/global.h	/^#define CLOSE_WAIT /;"	d
+CLOSING	inc/global.h	/^#define CLOSING /;"	d
+CONGESTION_AVOIDANCE	inc/global.h	/^#define CONGESTION_AVOIDANCE /;"	d
+DEFAULT_HEADER_LEN	inc/tju_packet.h	/^#define DEFAULT_HEADER_LEN /;"	d
+ESTABLISHED	inc/global.h	/^#define ESTABLISHED /;"	d
+FALSE	inc/global.h	/^#define FALSE /;"	d
+FAST_RECOVERY	inc/global.h	/^#define FAST_RECOVERY /;"	d
+FIN_FLAG_MASK	inc/tju_packet.h	/^#define FIN_FLAG_MASK /;"	d
+FIN_WAIT_1	inc/global.h	/^#define FIN_WAIT_1 /;"	d
+FIN_WAIT_2	inc/global.h	/^#define FIN_WAIT_2 /;"	d
+FLAGS	Makefile	/^FLAGS = -pthread -g -ggdb -DDEBUG -I$(INC_DIR)$/;"	m
+INC_DIR	Makefile	/^INC_DIR = $(TOP_DIR)\/inc$/;"	m
+LAST_ACK	inc/global.h	/^#define LAST_ACK /;"	d
+LISTEN	inc/global.h	/^#define LISTEN /;"	d
+MAX_DLEN	inc/global.h	/^#define MAX_DLEN /;"	d
+MAX_LEN	inc/global.h	/^#define MAX_LEN /;"	d
+MAX_SOCK	inc/kernel.h	/^#define MAX_SOCK /;"	d
+NO_FLAG	inc/global.h	/^#define NO_FLAG /;"	d
+NO_WAIT	inc/global.h	/^#define NO_WAIT /;"	d
+OBJS	Makefile	/^OBJS = $(BUILD_DIR)\/tju_packet.o \\$/;"	m
+SIZE16	inc/global.h	/^#define SIZE16 /;"	d
+SIZE32	inc/global.h	/^#define SIZE32 /;"	d
+SIZE8	inc/global.h	/^#define SIZE8 /;"	d
+SLOW_START	inc/global.h	/^#define SLOW_START /;"	d
+SRC_DIR	Makefile	/^SRC_DIR = $(TOP_DIR)\/src$/;"	m
+SYN_FLAG_MASK	inc/tju_packet.h	/^#define SYN_FLAG_MASK /;"	d
+SYN_RECV	inc/global.h	/^#define SYN_RECV /;"	d
+SYN_SENT	inc/global.h	/^#define SYN_SENT /;"	d
+TCP_RECVWN_SIZE	inc/global.h	/^#define TCP_RECVWN_SIZE /;"	d
+TIMEOUT	inc/global.h	/^#define TIMEOUT /;"	d
+TIME_WAIT	inc/global.h	/^#define TIME_WAIT /;"	d
+TOP_DIR	Makefile	/^TOP_DIR = .$/;"	m
+TRUE	inc/global.h	/^#define TRUE /;"	d
+_GLOBAL_H_	inc/global.h	/^#define _GLOBAL_H_$/;"	d
+_KERNEL_H_	inc/kernel.h	/^#define _KERNEL_H_$/;"	d
+_TJU_PACKET_H_	inc/tju_packet.h	/^#define _TJU_PACKET_H_$/;"	d
+_TJU_TCP_H_	inc/tju_tcp.h	/^#define _TJU_TCP_H_$/;"	d
+__anon3f581bd50108	inc/global.h	/^typedef struct {$/;"	s
+__anon3f581bd50208	inc/global.h	/^typedef struct {$/;"	s
+__anon3f581bd50308	inc/global.h	/^typedef struct {$/;"	s
+__anon3f581bd50408	inc/global.h	/^typedef struct {$/;"	s
+__anon3f581bd50508	inc/global.h	/^typedef struct {$/;"	s
+__anon54944b4e0108	inc/tju_packet.h	/^typedef struct {$/;"	s
+__anon54944b4e0208	inc/tju_packet.h	/^typedef struct {$/;"	s
+ack_num	inc/tju_packet.h	/^	uint32_t ack_num; 			\/\/4 bytes ack number$/;"	m	struct:__anon54944b4e0108	typeref:typename:uint32_t
+advertised_window	inc/tju_packet.h	/^	uint16_t advertised_window; \/\/2 bytes 接收方发送给发送方的建议窗口大小 用于/;"	m	struct:__anon54944b4e0108	typeref:typename:uint16_t
+all	Makefile	/^all: clean server client$/;"	t
+bind_addr	inc/global.h	/^	tju_sock_addr bind_addr; \/\/ 存放bind和listen时该socket绑定的IP和端口$/;"	m	struct:__anon3f581bd50508	typeref:typename:tju_sock_addr
+cal_hash	src/kernel.c	/^int cal_hash(uint32_t local_ip, uint16_t local_port, uint32_t remote_ip, uint16_t remote_port){$/;"	f	typeref:typename:int
+clean	Makefile	/^clean:$/;"	t
+client	Makefile	/^client:$/;"	t
+create_packet	src/tju_packet.c	/^tju_packet_t* create_packet(uint16_t src, uint16_t dst, uint32_t seq, $/;"	f	typeref:typename:tju_packet_t *
+create_packet_buf	src/tju_packet.c	/^char* create_packet_buf(uint16_t src, uint16_t dst, uint32_t seq, uint32_t ack,$/;"	f	typeref:typename:char *
+data	inc/tju_packet.h	/^	char* data;$/;"	m	struct:__anon54944b4e0208	typeref:typename:char *
+default	Makefile	/^default:all$/;"	t
+destination_port	inc/tju_packet.h	/^	uint16_t destination_port;	\/\/2 bytes 目的端口$/;"	m	struct:__anon54944b4e0108	typeref:typename:uint16_t
+established_local_addr	inc/global.h	/^	tju_sock_addr established_local_addr; \/\/ 存放建立连接后 本机的 IP和端口$/;"	m	struct:__anon3f581bd50508	typeref:typename:tju_sock_addr
+established_remote_addr	inc/global.h	/^	tju_sock_addr established_remote_addr; \/\/ 存放建立连接后 连接对方的 IP和端口$/;"	m	struct:__anon3f581bd50508	typeref:typename:tju_sock_addr
+established_socks	inc/kernel.h	/^tju_tcp_t* established_socks[MAX_SOCK];$/;"	v	typeref:typename:tju_tcp_t * []
+ext	inc/tju_packet.h	/^    uint8_t ext;				\/\/1 byte  一些额外的数据 在这个项目里是为了将header的大/;"	m	struct:__anon54944b4e0108	typeref:typename:uint8_t
+flags	inc/tju_packet.h	/^	uint8_t flags;				\/\/1 byte  标志位 比如 SYN FIN ACK 等$/;"	m	struct:__anon54944b4e0108	typeref:typename:uint8_t
+free_packet	src/tju_packet.c	/^void free_packet(tju_packet_t* packet){$/;"	f	typeref:typename:void
+get_ack	src/tju_packet.c	/^uint32_t get_ack(char* msg){$/;"	f	typeref:typename:uint32_t
+get_advertised_window	src/tju_packet.c	/^uint16_t get_advertised_window(char* msg){$/;"	f	typeref:typename:uint16_t
+get_dst	src/tju_packet.c	/^uint16_t get_dst(char* msg){$/;"	f	typeref:typename:uint16_t
+get_ext	src/tju_packet.c	/^uint8_t get_ext(char* msg){$/;"	f	typeref:typename:uint8_t
+get_flags	src/tju_packet.c	/^uint8_t get_flags(char* msg){$/;"	f	typeref:typename:uint8_t
+get_hlen	src/tju_packet.c	/^uint16_t get_hlen(char* msg){$/;"	f	typeref:typename:uint16_t
+get_plen	src/tju_packet.c	/^uint16_t get_plen(char* msg){$/;"	f	typeref:typename:uint16_t
+get_seq	src/tju_packet.c	/^uint32_t get_seq(char* msg){$/;"	f	typeref:typename:uint32_t
+get_src	src/tju_packet.c	/^uint16_t get_src(char* msg){$/;"	f	typeref:typename:uint16_t
+header	inc/tju_packet.h	/^	tju_header_t header;$/;"	m	struct:__anon54944b4e0208	typeref:typename:tju_header_t
+header_in_char	src/tju_packet.c	/^char* header_in_char(uint16_t src, uint16_t dst, uint32_t seq, uint32_t ack,$/;"	f	typeref:typename:char *
+hlen	inc/tju_packet.h	/^	uint16_t hlen;				\/\/2 bytes 包头长 这个项目里全是20$/;"	m	struct:__anon54944b4e0108	typeref:typename:uint16_t
+ip	inc/global.h	/^	uint32_t ip;$/;"	m	struct:__anon3f581bd50408	typeref:typename:uint32_t
+listen_socks	inc/kernel.h	/^tju_tcp_t* listen_socks[MAX_SOCK];$/;"	v	typeref:typename:tju_tcp_t * []
+main	src/client.c	/^int main(int argc, char **argv) {$/;"	f	typeref:typename:int
+main	src/server.c	/^int main(int argc, char **argv) {$/;"	f	typeref:typename:int
+onTCPPocket	src/kernel.c	/^void onTCPPocket(char* pkt){$/;"	f	typeref:typename:void
+packet_to_buf	src/tju_packet.c	/^char* packet_to_buf(tju_packet_t* p){$/;"	f	typeref:typename:char *
+plen	inc/tju_packet.h	/^	uint16_t plen;				\/\/2 bytes 包总长 包括包头和包携带的数据 20+数据长度 注意/;"	m	struct:__anon54944b4e0108	typeref:typename:uint16_t
+port	inc/global.h	/^	uint16_t port;$/;"	m	struct:__anon3f581bd50408	typeref:typename:uint16_t
+receive_thread	src/kernel.c	/^void* receive_thread(void* arg){$/;"	f	typeref:typename:void *
+received	inc/global.h	/^	char received[TCP_RECVWN_SIZE];$/;"	m	struct:__anon3f581bd50208	typeref:typename:char[]
+received_buf	inc/global.h	/^	char* received_buf; \/\/ 接收数据缓存区$/;"	m	struct:__anon3f581bd50508	typeref:typename:char *
+received_len	inc/global.h	/^	int received_len; \/\/ 接收数据缓存长度$/;"	m	struct:__anon3f581bd50508	typeref:typename:int
+receiver_window_t	inc/global.h	/^} receiver_window_t;$/;"	t	typeref:struct:__anon3f581bd50208
+recv_lock	inc/global.h	/^	pthread_mutex_t recv_lock; \/\/ 接收数据锁$/;"	m	struct:__anon3f581bd50508	typeref:typename:pthread_mutex_t
+sendToLayer3	src/kernel.c	/^void sendToLayer3(char* packet_buf, int packet_len){$/;"	f	typeref:typename:void
+send_lock	inc/global.h	/^	pthread_mutex_t send_lock; \/\/ 发送数据锁$/;"	m	struct:__anon3f581bd50508	typeref:typename:pthread_mutex_t
+sender_window_t	inc/global.h	/^} sender_window_t;$/;"	t	typeref:struct:__anon3f581bd50108
+sending_buf	inc/global.h	/^	char* sending_buf; \/\/ 发送数据缓存区$/;"	m	struct:__anon3f581bd50508	typeref:typename:char *
+sending_len	inc/global.h	/^	int sending_len; \/\/ 发送数据缓存长度$/;"	m	struct:__anon3f581bd50508	typeref:typename:int
+sent_time	inc/tju_packet.h	/^	struct timeval sent_time;$/;"	m	struct:__anon54944b4e0208	typeref:struct:timeval
+seq_num	inc/tju_packet.h	/^	uint32_t seq_num; 			\/\/4 bytes sequence number$/;"	m	struct:__anon54944b4e0108	typeref:typename:uint32_t
+server	Makefile	/^server: $(OBJS)$/;"	t
+source_port	inc/tju_packet.h	/^	uint16_t source_port;		\/\/2 bytes 源端口$/;"	m	struct:__anon54944b4e0108	typeref:typename:uint16_t
+startSimulation	src/kernel.c	/^void startSimulation(){$/;"	f	typeref:typename:void
+state	inc/global.h	/^	int state; \/\/ TCP的状态$/;"	m	struct:__anon3f581bd50508	typeref:typename:int
+tju_accept	src/tju_tcp.c	/^tju_tcp_t* tju_accept(tju_tcp_t* listen_sock){$/;"	f	typeref:typename:tju_tcp_t *
+tju_bind	src/tju_tcp.c	/^int tju_bind(tju_tcp_t* sock, tju_sock_addr bind_addr){$/;"	f	typeref:typename:int
+tju_close	src/tju_tcp.c	/^int tju_close (tju_tcp_t* sock){$/;"	f	typeref:typename:int
+tju_connect	src/tju_tcp.c	/^int tju_connect(tju_tcp_t* sock, tju_sock_addr target_addr){$/;"	f	typeref:typename:int
+tju_handle_packet	src/tju_tcp.c	/^int tju_handle_packet(tju_tcp_t* sock, char* pkt){$/;"	f	typeref:typename:int
+tju_header_t	inc/tju_packet.h	/^} tju_header_t;$/;"	t	typeref:struct:__anon54944b4e0108
+tju_listen	src/tju_tcp.c	/^int tju_listen(tju_tcp_t* sock){$/;"	f	typeref:typename:int
+tju_packet_t	inc/tju_packet.h	/^} tju_packet_t;$/;"	t	typeref:struct:__anon54944b4e0208
+tju_recv	src/tju_tcp.c	/^int tju_recv(tju_tcp_t* sock, void *buffer, int len){$/;"	f	typeref:typename:int
+tju_send	src/tju_tcp.c	/^int tju_send(tju_tcp_t* sock, const void *buffer, int len){$/;"	f	typeref:typename:int
+tju_sock_addr	inc/global.h	/^} tju_sock_addr;$/;"	t	typeref:struct:__anon3f581bd50408
+tju_socket	src/tju_tcp.c	/^tju_tcp_t* tju_socket(){$/;"	f	typeref:typename:tju_tcp_t *
+tju_tcp_t	inc/global.h	/^} tju_tcp_t;$/;"	t	typeref:struct:__anon3f581bd50508
+wait_cond	inc/global.h	/^	pthread_cond_t wait_cond; \/\/ 可以被用来唤醒recv函数调用时等待的线程$/;"	m	struct:__anon3f581bd50508	typeref:typename:pthread_cond_t
+window	inc/global.h	/^	window_t window; \/\/ 发送和接受窗口$/;"	m	struct:__anon3f581bd50508	typeref:typename:window_t
+window_size	inc/global.h	/^	uint16_t window_size;$/;"	m	struct:__anon3f581bd50108	typeref:typename:uint16_t
+window_t	inc/global.h	/^} window_t;$/;"	t	typeref:struct:__anon3f581bd50308
+wnd_recv	inc/global.h	/^  	receiver_window_t* wnd_recv;$/;"	m	struct:__anon3f581bd50308	typeref:typename:receiver_window_t *
+wnd_send	inc/global.h	/^	sender_window_t* wnd_send;$/;"	m	struct:__anon3f581bd50308	typeref:typename:sender_window_t *

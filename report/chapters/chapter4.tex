@@ -1,0 +1,45 @@
+% !TEX root = ../tjumain.tex
+\chapter{可靠数据传输的实现}
+
+\section{Client 端}
+\subsection{Tju\_Send 实现}
+
+在 Tju\_Send 中，首先需要判断上层内容的大小，若过大，则需要进行切片，以免在下层被切割。然后在进入阻塞状态，等待发送窗口出现空闲。然后交给发送窗口，同时调用发送函数，在 rwnd 的情况下将发送缓冲区的内容进行发送（此处在后期需要调整为 线程）
+
+\section{Server 端}
+\subsection{Tju\_Recv 实现}
+在 Tju\_Recv 中，首先进行阻塞等待，直到其他线程给接收缓冲区放入内容。待有内容后，再将内容 通过 Memcpy 提交给上层调用的实体。
+
+\section{通用}
+\subsection{Socket 数据结构}
+\begin{itemize}
+    \item 给 window.wnd\_send 增加了 rwnd 和 cwnd 等控制发送的信息
+    \item 给 window.wnd\_recv 增加了 AVL Tree 等数据结构，用于存放乱序到达的数据包
+    \item 给 window.wnd\_send 增加了 rto 等字段，动态控制超时事件
+    \item 给 window.wnd\_recv 增加了 expe\_seq 等字段，判断接收到的数据顺序正确与否
+\end{itemize}
+
+\subsection{超时重传机制}
+\subsubsection*{超时重传定时器}
+实现了 Timer\_Helpher 子系统，通过设置 set\_timer() 函数来新建一个 Timer，Delete\_timer() 来终止一个 Timer。使用了一个线程不断检查是否有超时的Timer，并进行重传和重置。使用 Mutex Lock 进行存储区域的一致性，使得在增加、删除和检查时只能有一个线程存在。
+
+特别的，我们使用了链表的数据结构进行 Timer 的增加、删除和检查，链表能够高效地进行增加删除。同时，设置了 event 数据类型来处理当前 Timer 的超时操作（可以通过传入不同的函数和变量达到不同类型 Timer 的统一调用）。
+
+\subsubsection*{RTO调整}
+
+由于我们每个需要重传的报文都对应一个 TIMER，所以我们能通过发送时的 Created\_At 和删除时的系统事件算出当前 Timer 提供的 sampleRTT 并 在每次进行 Timer 删除时，通过公式 \ref{eq:rto} 进行 RTO 的更新。
+
+值得注意的是，这里依然需要大量使用 Mutex Locker 来控制：在更新 RTO 时，不能创建新的Timer，直到 RTO 更新完成。
+
+\subsubsection*{流量控制}
+
+接收方发送ACK时，将自己缓冲区大小放入 advertised\_wind 字段。发送方在接收到 ACK 时，需要提取 rwnd 值。在设置发送窗口的大小时，我们需要考虑 rwnd（发送窗口大小）, cwnd（拥塞控制）, 以及自己本身的大小。
+
+当得到 rwnd == 0 的情况时，发送方需要发送1比特的试探报文进行发送窗口的试探，同时需要设置超时机制进行不断试探。
+
+\subsubsection*{日志记录}
+
+实现了日志 trace 模块，在Server Client 端调用 tju\_sock 的时候进行日志的初始化（即定义日志名，创建日志文件等）。然后通过提供的日志格式和事件，在相应事件发生时，调用响应函数进行日志的录入。
+
+
+
