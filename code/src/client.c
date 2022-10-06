@@ -1,4 +1,4 @@
-#include "tju_tcp.h"
+#include "../inc/tju_tcp.h"
 #include <string.h>
 #include <fcntl.h>
 
@@ -28,6 +28,7 @@ int main(int argc, char **argv) {
     tju_connect(my_socket, target_addr);
 
     sleep_no_wake(8);
+  _debug_line_("Connection Established, Start");
 
     int fd =  open("./rdt_send_file.txt",O_RDWR);
     if(-1 == fd) {

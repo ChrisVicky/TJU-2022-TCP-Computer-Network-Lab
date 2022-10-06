@@ -46,7 +46,7 @@ void *retransmit(transmit_arg_t *args) {
   uint32_t id = set_timer_without_mutex(timers,0,SEC2NANO(tju_tcp->window.wnd_send->rto),(void *(*)(void *)) retransmit,args);
   uint16_t dlen = pkt->header.plen - pkt->header.hlen;
   ack_id_hash[pkt->header.seq_num + dlen + 1] = id;
-  _debug_("transmit : set timer %d expecting ack: %d, timeout at %f\n",id,pkt->header.seq_num + dlen + 1,tju_tcp->window.wnd_send->rto);
+  _debug_("transmit : set timer %d seq: %d, expecting ack: %d, timeout at %f\n",id,pkt->header.seq_num,pkt->header.seq_num + dlen + 1,tju_tcp->window.wnd_send->rto);
   safe_packet_sender(pkt);
   return NULL;
 }
@@ -82,13 +82,13 @@ void free_retrans_arg(void *arg) {
 
 void received_ack(uint32_t ack, tju_tcp_t *sock) {
   // TODO: an ack should remove all the packets with seq_num+length < ack
-  _debug_("ack received: %d\n", ack);
   if (ack_id_hash[ack] != 0) {
     uint32_t tmp = sock->window.wnd_send->base;
     while (ack_id_hash[++tmp] == 0);
     if (tmp == ack) {
       sock->window.wnd_send->base = ack;
     }
+    _debug_("ack received: %d, remove timer %d\n", ack,ack_id_hash[ack]);
     destroy_timer(timers, ack_id_hash[ack], 1, free_retrans_arg);
     ack_id_hash[ack] = 0;
   }
@@ -99,7 +99,7 @@ void *transit_work_thread(timer_list *list) {
   spec = NANO2TIMESPEC(get_recent_timeout(list));
   while(TRUE){
     pthread_mutex_lock(&cond_mutex);
-    pthread_cond_timedwait(&packet_available, &cond_mutex, &spec);
+    pthread_cond_timedwait(&packet_available, &cond_mutex, &spec); // Wait till the next timeout
     pthread_mutex_unlock(&cond_mutex);
     check_timer(list);
     spec = NANO2TIMESPEC(get_recent_timeout(list));

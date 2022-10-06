@@ -3,6 +3,7 @@
 
 
 FILE *trace_file;
+FILE *debug_file;
 pthread_mutex_t trace_mutex = PTHREAD_MUTEX_INITIALIZER;
 #define TRACE_IT
 
@@ -34,7 +35,6 @@ void init_trace() {
   _debug_("create file: %s\n",filename);
   //BUG: 在手动测试：可以正常生成
   //BUG: 在脚本测试时，只能找到 client.event.trace 找不到 server.event.trace
-
 }
 
 long get_current_time(){
@@ -111,6 +111,8 @@ void trace_delv(uint32_t seq, uint32_t size){
   _trace_("[%ld] [DELV] [seq:%d size:%d]\n",get_current_time(),seq,size);
   pthread_mutex_unlock(&trace_mutex);
 }
+
+
 #else
 
 void init_trace(){}

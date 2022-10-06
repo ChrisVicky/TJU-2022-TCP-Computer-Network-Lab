@@ -26,7 +26,7 @@
 //RTT CALCULATION
 #define RTT_ALPHA 0.125
 #define RTT_BETA 0.25
-#define INIT_RTT 0.05
+#define INIT_RTT 5
 #define RTT_UBOUND 60
 #define RTT_LBOUND 0.05
 

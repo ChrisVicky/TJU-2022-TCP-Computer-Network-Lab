@@ -2,6 +2,7 @@
 #include <string.h>
 #include <signal.h>
 #include <stdio.h>
+#include "../inc/debug.h"
 
 #define MIN_LEN 1000
 #define EACHSIZE 10*MIN_LEN
@@ -27,7 +28,6 @@ void fflushbeforeexit(int signo){
 
 void sleep_no_wake(int sec){  
     do{        
-        printf("Interrupted\n");
         sec =sleep(sec);
     }while(sec > 0);             
 }
@@ -53,6 +53,8 @@ int main(int argc, char **argv) {
     tju_tcp_t* new_conn = tju_accept(my_server);
 
     sleep_no_wake(8);
+
+  _debug_line_("Connection Established, Start");
 
     int alllen = 0;
     int print_s = 0;

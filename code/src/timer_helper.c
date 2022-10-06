@@ -41,7 +41,6 @@ uint32_t set_timer(struct timer_list *list, uint32_t sec, uint64_t nano_sec, voi
 
 
 void free_timer_node(timer_node* node){
-  // printf("free_timer\n");
   free(node->event->timeout_at);
   free(node->event->create_at);
   free(node->event);
@@ -72,7 +71,9 @@ int check_timer(struct timer_list *list){
     clock_gettime(CLOCK_REALTIME, &now);
     uint64_t current_time = TIMESPEC2NANO(now);
     uint64_t timeout = TIMESPEC2NANO((*(iter->event->timeout_at)));
+    uint64_t time_create = TIMESPEC2NANO((*(iter->event->create_at)));
     if (timeout <= current_time) {
+      _debug_("%ld + %ld <= %ld(timeout) %ld\n",time_create,timeout-time_create, current_time, current_time - timeout);
       if (prev == NULL) {
         list->head = iter->next;
       } else {
@@ -108,7 +109,8 @@ int check_timer(struct timer_list *list){
 *
 * @return 
 */
-uint32_t get_recent_timeout(struct timer_list *list) {
+uint64_t get_recent_timeout(struct timer_list *list) {
+  // Get the top Timeout
   pthread_mutex_lock(&list->lock);
   if (list->head == NULL) {
     pthread_mutex_unlock(&list->lock);
@@ -117,8 +119,8 @@ uint32_t get_recent_timeout(struct timer_list *list) {
 
   struct timespec now;
   clock_gettime(CLOCK_REALTIME, &now);
-  uint32_t current_time = TIMESPEC2NANO(now);
-  uint32_t timeout = TIMESPEC2NANO((*(list->head->event->timeout_at))) - current_time;
+  uint64_t current_time = TIMESPEC2NANO(now);
+  uint64_t timeout = TIMESPEC2NANO((*(list->head->event->timeout_at))) - current_time;
 
   pthread_mutex_unlock(&list->lock);
   return timeout;
@@ -126,6 +128,9 @@ uint32_t get_recent_timeout(struct timer_list *list) {
 
 int destroy_timer(struct timer_list *list, uint32_t id, int destroy, void (*des)(void *)) {
   // _debug_("destroy timer %d\n", id);
+  // Remove timer with particular id(which we want to change to seq)
+  // take des(iter->event)
+  // free_timer_node()
   pthread_mutex_lock(&list->lock);
   struct timer_node *iter= list->head;
   struct timer_node *prev = NULL;

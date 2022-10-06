@@ -1,6 +1,7 @@
 #include "../inc/kernel.h"
 #include "../inc/tju_packet.h"
 #include "../inc/tju_tcp.h"
+extern FILE * debug_file;
 /*
 模拟Linux内核收到一份TCP报文的处理函数
 */
@@ -34,7 +35,7 @@ void onTCPPocket(char* pkt){
   // 没有的话再查找监听中的socket哈希表
   hashval = cal_hash(local_ip, local_port, 0, 0); //监听的socket只有本地监听ip和端口 没有远端
   tju_sock_addr tmp; tmp.port = local_port; tmp.ip = local_ip;
-  _ip_port_(tmp);
+  // _ip_port_(tmp);
   if (listen_socks[hashval]!=NULL){
     tju_handle_packet(listen_socks[hashval], pkt);
     return;
@@ -173,6 +174,21 @@ void startSimulation(){
     exit(-1); 
   }
   // _debug_("successfully created bankend thread\n");
+
+  // TODO: 实际不用这个
+  if(1){
+    char logfile[256];
+    memset(logfile, 0, sizeof(logfile));
+    strcat(logfile, hostname);
+    strcat(logfile, ".log.log");
+    remove(logfile);
+    debug_file = fopen(logfile, "w");
+    if(debug_file == NULL){
+      printf("Error");
+    }
+  }else{
+    debug_file = stderr;
+  }
   return;
 }
 

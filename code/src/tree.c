@@ -341,7 +341,7 @@ void printTree(treeNode*root, char indent[], int last) {
 void print_tree(myTree *root){
   if(!DEBUG_FLAG) return;
   if(1){
-    _debug_("Current Tree Number %d",root->size);
+    _debug_("Current Tree Number %d\n",root->size);
     return ;
   }else{
 

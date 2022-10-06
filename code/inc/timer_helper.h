@@ -31,7 +31,7 @@ typedef struct timer_list{
 }timer_list;
 
 struct timer_list* init_timer_list();
-uint32_t get_recent_timeout(struct timer_list *list);
+uint64_t get_recent_timeout(struct timer_list *list);
 uint32_t set_timer(struct timer_list *list, uint32_t sec, uint64_t nano_sec, void *(*callback)(void *), void *args);
 int check_timer(struct timer_list *list);
 uint32_t set_timer_without_mutex(struct timer_list *list,uint32_t sec,uint64_t nano_sec,void *(*callback)(void *),void *args);
