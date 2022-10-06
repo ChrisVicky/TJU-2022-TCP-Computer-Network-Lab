@@ -175,7 +175,7 @@ void startSimulation(){
   }
   // _debug_("successfully created bankend thread\n");
 
-  // TODO: 实际不用这个
+  // NOTE: 方便测试而已
   if(1){
     char logfile[256];
     memset(logfile, 0, sizeof(logfile));

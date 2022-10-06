@@ -10,60 +10,61 @@
 int t_times = 5000;
 
 void sleep_no_wake(int sec){  
-    do{          
-        sec =sleep(sec);
-    }while(sec > 0);             
+  do{          
+    printf("SLEEP %d" ,sec);
+    sec =sleep(sec);
+  }while(sec > 0);             
 }
 
 int main(int argc, char **argv) {
-    // 开启仿真环境 
-    startSimulation();
+  // 开启仿真环境 
+  startSimulation();
 
-    tju_tcp_t* my_socket = tju_socket();
-    
-    tju_sock_addr target_addr;
-    target_addr.ip = inet_network("172.17.0.3");
-    target_addr.port = 1234;
+  tju_tcp_t* my_socket = tju_socket();
 
-    tju_connect(my_socket, target_addr);
+  tju_sock_addr target_addr;
+  target_addr.ip = inet_network("172.17.0.3");
+  target_addr.port = 1234;
 
-    sleep_no_wake(8);
+  tju_connect(my_socket, target_addr);
+
+  sleep_no_wake(8);
   _debug_line_("Connection Established, Start");
 
-    int fd =  open("./rdt_send_file.txt",O_RDWR);
-    if(-1 == fd) {
-        return 1;
+  printf("Connection Established\n");
+  int fd =  open("./rdt_send_file.txt",O_RDWR);
+  if(-1 == fd) {
+    return 1;
+  }
+  struct stat st;
+  fstat(fd, &st);
+  char* file_buf  = (char *)malloc(sizeof(char)*st.st_size);
+  read(fd, (void *)file_buf, st.st_size );
+  close(fd);
+
+  for(int i=0; i<t_times; i++){
+    char *buf = malloc(EACHSIZE);
+    memset(buf, 0, EACHSIZE);
+    if(i<10){
+      sprintf(buf , "START####%d#", i);
+    }else if(i<100){
+      sprintf(buf , "START###%d#", i);
+    }else if(i<1000){
+      sprintf(buf , "START##%d#", i);
     }
-    struct stat st;
-    fstat(fd, &st);
-    char* file_buf  = (char *)malloc(sizeof(char)*st.st_size);
-    read(fd, (void *)file_buf, st.st_size );
-    close(fd);
-
-    for(int i=0; i<t_times; i++){
-        char *buf = malloc(EACHSIZE);
-        memset(buf, 0, EACHSIZE);
-        if(i<10){
-            sprintf(buf , "START####%d#", i);
-        }
-        else if(i<100){
-            sprintf(buf , "START###%d#", i);
-        }
-        else if(i<1000){
-            sprintf(buf , "START##%d#", i);
-        }
-        else if(i<10000){
-            sprintf(buf , "START#%d#", i);
-        }
-
-        strcat(buf, file_buf);
-        tju_send(my_socket, buf, EACHSIZE);
-        free(buf);
+  else if(i<10000){
+      sprintf(buf , "START#%d#", i);
     }
 
-    free(file_buf);
-        
-    sleep_no_wake(100);
+    strcat(buf, file_buf);
+    tju_send(my_socket, buf, EACHSIZE);
+    free(buf);
+  }
+  printf("\n");
 
-    return EXIT_SUCCESS;
+  free(file_buf);
+
+  sleep_no_wake(100);
+
+  return EXIT_SUCCESS;
 }

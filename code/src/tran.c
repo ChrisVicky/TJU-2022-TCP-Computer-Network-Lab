@@ -85,10 +85,11 @@ void received_ack(uint32_t ack, tju_tcp_t *sock) {
   if (ack_id_hash[ack] != 0) {
     uint32_t tmp = sock->window.wnd_send->base;
     while (ack_id_hash[++tmp] == 0);
-    if (tmp == ack) {
-      sock->window.wnd_send->base = ack;
-    }
-    _debug_("ack received: %d, remove timer %d\n", ack,ack_id_hash[ack]);
+    // if (tmp == ack) {
+    //   sock->window.wnd_send->base = ack;
+    // }
+    _debug_("ack received: %d, remove timer %d, base:%d -> %d\n", ack,ack_id_hash[ack], sock->window.wnd_send->base, max(sock->window.wnd_send->base, ack));
+    sock->window.wnd_send->base = max(sock->window.wnd_send->base, ack);
     destroy_timer(timers, ack_id_hash[ack], 1, free_retrans_arg);
     ack_id_hash[ack] = 0;
   }
