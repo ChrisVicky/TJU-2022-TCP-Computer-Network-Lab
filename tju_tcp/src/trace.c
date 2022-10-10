@@ -45,6 +45,7 @@ long get_current_time(){
 
 
 void trace_send(uint32_t seq, uint32_t ack, uint32_t flag){
+  _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
   char flag_str[32];
   memset(flag_str, 0, sizeof(flag_str));
@@ -59,6 +60,7 @@ void trace_send(uint32_t seq, uint32_t ack, uint32_t flag){
 }
 
 void trace_recv(uint32_t seq, uint32_t ack, uint32_t flag){
+  _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
   char flag_str[32];
   memset(flag_str, 0, sizeof(flag_str));
@@ -73,6 +75,7 @@ void trace_recv(uint32_t seq, uint32_t ack, uint32_t flag){
 }
 
 void trace_cwnd(uint32_t type, uint32_t size){
+  _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
   fprintf(trace_file, "[%ld] [CWND] [type:%d size:%d]\n",get_current_time(), type, size);
   _trace_("[%ld] [CWND] [type:%d size:%d]\n",get_current_time(), type, size);
@@ -81,6 +84,7 @@ void trace_cwnd(uint32_t type, uint32_t size){
 
 // Recv windows buffer size 
 void trace_rwnd(uint32_t size){
+  _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
   fprintf(trace_file, "[%ld] [RWND] [size:%d]\n",get_current_time(),size);
   _trace_("[%ld] [RWND] [size:%d]\n",get_current_time(),size);
@@ -89,6 +93,7 @@ void trace_rwnd(uint32_t size){
 
 // sender windows size
 void trace_swnd(uint32_t size){
+  _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
   fprintf(trace_file, "[%ld] [SWND] [size:%d]\n",get_current_time(),size);
   _trace_("[%ld] [SWND] [size:%d]\n",get_current_time(),size);
@@ -98,6 +103,7 @@ void trace_swnd(uint32_t size){
 // Sample, Est, Deviation Rtt Timeout Interval Difference
 void trace_rtts(double s, double e, double d, double t){
   // TODO: shoule be ms instead of s
+  _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
   fprintf(trace_file, "[%ld] [RTTS] [SampleRTT:%f EstablishedRTT:%f DeviationRtt:%f TimeoutInterval:%f]\n",get_current_time(), s,e,d,t);
   _trace_("[%ld] [RTTS] [SampleRTT:%f EstablishedRTT:%f DeviationRtt:%f TimeoutInterval:%f]\n",get_current_time(), s,e,d,t);
@@ -106,6 +112,7 @@ void trace_rtts(double s, double e, double d, double t){
 
 // Recv Window diliver data to recv buff
 void trace_delv(uint32_t seq, uint32_t size){
+  _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
   fprintf(trace_file, "[%ld] [DELV] [seq:%d size:%d]\n",get_current_time(),seq,size);
   _trace_("[%ld] [DELV] [seq:%d size:%d]\n",get_current_time(),seq,size);

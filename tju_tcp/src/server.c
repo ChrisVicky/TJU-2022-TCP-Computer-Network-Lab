@@ -13,6 +13,7 @@ char allbuf[MAXSIZE] = {'\0'}; //设置全局变量
 
 void fflushbeforeexit(int signo){
   printf("意外退出server\n");
+  printf("time: %ld\n",get_current_time());
 
   FILE *wfile;
   wfile = fopen("./rdt_recv_file.txt","w");
@@ -41,28 +42,21 @@ int main(int argc, char **argv) {
   // 开启仿真环境 
   startSimulation();
 
-  printf("Connection Established\n");
   tju_tcp_t* my_server = tju_socket();
-  printf("Connection Established\n");
 
   tju_sock_addr bind_addr;
   bind_addr.ip = inet_network("172.17.0.3");
   bind_addr.port = 1234;
-  printf("Connection Established\n");
 
   tju_bind(my_server, bind_addr);
-  printf("Connection Established\n");
 
   tju_listen(my_server);
-  printf("Connection Established\n");
 
   tju_tcp_t* new_conn = tju_accept(my_server);
-  printf("Connection Established\n");
-
+  _debug_line_("Connection Established, Start");
   sleep_no_wake(8);
 
-  _debug_line_("Connection Established, Start");
-  printf("Connection Established\n");
+  printf("Sleep End\n");
 
   int alllen = 0;
   int print_s = 0;
@@ -84,7 +78,7 @@ int main(int argc, char **argv) {
     if(print_s+EACHSIZE <= alllen){
       char tmpbuf[EACHSIZE] = {'\0'};
       memcpy(tmpbuf, allbuf+print_s, EACHSIZE);
-      printf("[RDT TEST] server recv %ld\n", sizeof(tmpbuf));
+      // printf("[RDT TEST] server recv %ld %d\r", sizeof(tmpbuf),alllen);
       print_s += EACHSIZE;
     }
     fflush(stdout);

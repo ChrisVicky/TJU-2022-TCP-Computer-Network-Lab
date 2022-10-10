@@ -176,7 +176,7 @@ void startSimulation(){
   // _debug_("successfully created bankend thread\n");
 
   // NOTE: 方便测试而已
-  if(1){
+  if(OUTPUT_FILE){
     char logfile[256];
     memset(logfile, 0, sizeof(logfile));
     strcat(logfile, hostname);
@@ -185,8 +185,11 @@ void startSimulation(){
     debug_file = fopen(logfile, "w");
     if(debug_file == NULL){
       printf("Error");
+    }else{
+      printf("Debug output %s\n" ,logfile);
     }
   }else{
+    printf("Debug on Console\n");
     debug_file = stderr;
   }
   return;

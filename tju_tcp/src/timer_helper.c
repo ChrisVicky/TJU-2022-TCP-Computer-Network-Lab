@@ -14,7 +14,7 @@ void push_timer(timer_node* node, timer_list* list){
   }
 }
 
-uint32_t set_timer_without_mutex(struct timer_list *list, uint32_t sec, uint64_t nano_sec, void *(*callback)(void *), void *args) {
+uint32_t set_timer_without_mutex(struct timer_list *list, uint32_t sec, uint64_t nano_sec, void *(*callback)(void *, void* ), void *args) {
   struct timespec *timeout = malloc(sizeof(struct timespec));
   struct timespec *now = malloc(sizeof(struct timespec));
   clock_gettime(CLOCK_REALTIME, timeout);
@@ -32,7 +32,8 @@ uint32_t set_timer_without_mutex(struct timer_list *list, uint32_t sec, uint64_t
   return node->id;
 }
 
-uint32_t set_timer(struct timer_list *list, uint32_t sec, uint64_t nano_sec, void *(*callback)(void *), void *args){
+uint32_t set_timer(struct timer_list *list, uint32_t sec, uint64_t nano_sec, void *(*callback)(void *, void *), void *args){
+  _debug_("pthread_lock\n");
   pthread_mutex_lock(&list->lock);
   uint32_t ret = set_timer_without_mutex(list, sec, nano_sec, callback, args);
   pthread_mutex_unlock(&list->lock);
@@ -41,6 +42,7 @@ uint32_t set_timer(struct timer_list *list, uint32_t sec, uint64_t nano_sec, voi
 
 
 void free_timer_node(timer_node* node){
+  _debug_("free\n");
   free(node->event->timeout_at);
   free(node->event->create_at);
   free(node->event);
@@ -60,7 +62,8 @@ struct timer_list* init_timer_list(){
   return ret;
 }
 
-int check_timer(struct timer_list *list){
+int check_timer(tju_tcp_t *sock){
+  timer_list* list = sock->timers;
   pthread_mutex_lock(&list->lock);
   struct timer_node *iter = list->head;
   struct timer_node *prev = NULL;
@@ -87,7 +90,7 @@ int check_timer(struct timer_list *list){
       }
       struct timer_node *tmp = iter;
       _debug_("timer %d timeout\n", tmp->id);
-      void *result = tmp->event->callback(tmp->event->args);
+      void *result = tmp->event->callback(tmp->event->args, sock);
       free_timer_node(tmp);
       list->size--;
       if(prev!=NULL) iter = prev->next;
@@ -111,27 +114,18 @@ int check_timer(struct timer_list *list){
 */
 uint64_t get_recent_timeout(struct timer_list *list) {
   // Get the top Timeout
-  pthread_mutex_lock(&list->lock);
   if (list->head == NULL) {
-    pthread_mutex_unlock(&list->lock);
     return 0;
   }
-
   struct timespec now;
   clock_gettime(CLOCK_REALTIME, &now);
   uint64_t current_time = TIMESPEC2NANO(now);
   uint64_t timeout = TIMESPEC2NANO((*(list->head->event->timeout_at))) - current_time;
-
-  pthread_mutex_unlock(&list->lock);
   return timeout;
 }
 
-int destroy_timer(struct timer_list *list, uint32_t id, int destroy, void (*des)(void *)) {
-  // _debug_("destroy timer %d\n", id);
-  // Remove timer with particular id(which we want to change to seq)
-  // take des(iter->event)
-  // free_timer_node()
-  pthread_mutex_lock(&list->lock);
+int destroy_timer(tju_tcp_t* sock, uint32_t id, int destroy, void (*des)(void *, void*)) {
+  struct timer_list *list = sock->timers;
   struct timer_node *iter= list->head;
   struct timer_node *prev = NULL;
   while (iter != NULL) {
@@ -145,17 +139,20 @@ int destroy_timer(struct timer_list *list, uint32_t id, int destroy, void (*des)
         list->tail = prev;
       }
       if (destroy) {
-        des(iter->event);
+        _debug_("start destroying\n");
+        des(iter->event, sock);
       }
       free_timer_node(iter);
       list->size--;
-      // _debug_("timer %d canceled\n", id);
-      pthread_mutex_unlock(&list->lock);
       return 0;
     }
     prev = iter;
     iter = iter->next;
   }
-  pthread_mutex_unlock(&list->lock);
   return -1;
+}
+
+int get_list_size(struct timer_list* list){
+  int ret = list->size;
+  return ret;
 }

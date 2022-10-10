@@ -6,14 +6,16 @@
 #include <arpa/inet.h>
 #include "global.h"
 #include "pthread.h"
-#define DEBUG_FLAG 1
+#define DEBUG_FLAG 0
 extern pthread_mutex_t thread_print_lock;
+#define OUTPUT_FILE 0
 extern FILE* debug_file;
 // Debug Message -- format:
 // [File:Line:Func]():Msg
 // if(0/1) Toggle
 
-#ifdef LOCKIT
+// #define LOCKIT
+#ifdef LOCKIT 
 
 #define _debug_(...) \
   do {                 \
@@ -51,7 +53,7 @@ extern FILE* debug_file;
 
 #define _trace_(...) \
   do {                 \
-    if(0){           \
+    if(DEBUG_FLAG){           \
       pthread_mutex_lock(&thread_print_lock); \
       long time_time_print_debug=get_current_time();\
       fprintf(debug_file, "(TRACE) [%ld] [%-20s: %-4d: %-22s] \t", time_time_print_debug, __FILE__, \
@@ -95,7 +97,7 @@ extern FILE* debug_file;
 
 #define _trace_(...) \
   do {                 \
-    if(1){           \
+    if(DEBUG_FLAG){           \
       long time_time_print_debug=get_current_time();\
       fprintf(debug_file, "(TRACE) [%ld] [%-20s: %-4d: %-22s] \t", time_time_print_debug, __FILE__, \
                 __LINE__, __func__); \

@@ -15,6 +15,8 @@
 #include <sys/select.h>
 #include <arpa/inet.h>
 
+#define min(x,y) ((x)<(y)?(x):(y))
+#define max(x,y) ((x)>(y)?(x):(y))
 // 单位是byte
 #define SIZE32 4
 #define SIZE16 2
@@ -26,7 +28,7 @@
 //RTT CALCULATION
 #define RTT_ALPHA 0.125
 #define RTT_BETA 0.25
-#define INIT_RTT 5
+#define INIT_RTT 0.05
 #define RTT_UBOUND 60
 #define RTT_LBOUND 0.05
 
@@ -126,13 +128,14 @@ typedef struct {
 	tju_sock_addr established_remote_addr; // 存放建立连接后 连接对方的 IP和端口
 
 	pthread_mutex_t send_lock; // 发送数据锁
-	char* sending_buf; // 发送数据缓存区
-	int sending_len; // 发送数据缓存长度
-  struct myQueue* sending_queue;
+	// char* sending_buf; // 发送数据缓存区
+	// int sending_len; // 发送数据缓存长度
+  struct myQueue* sending_queue; // 用 queue 将 sending thread 和 tju_send 连接
+  struct timer_list* timers; // 用 timers 控制发送数据量
 
 	pthread_mutex_t recv_lock; // 接收数据锁
-  char* received_hdr_buf; // 接收的头部缓冲区
-  int received_hdr_len; // 头部缓冲区长度
+  // char* received_hdr_buf; // 接收的头部缓冲区
+  // int received_hdr_len; // 头部缓冲区长度
 	char* received_buf; // 接收数据缓存区
 	int received_len; // 接收数据缓存长度
   
@@ -149,6 +152,7 @@ typedef struct {
 
   struct myQueue *half_queue;
   struct myQueue *full_queue;
+
 } tju_tcp_t;
 
 typedef struct transmit_arg_t{

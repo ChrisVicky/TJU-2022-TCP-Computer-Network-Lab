@@ -9,8 +9,8 @@ tju_tcp_t* new_sock(){
   sock->state = CLOSED;
 
   sock->sending_queue = init_q();
-  sock->sending_buf = NULL;
-  sock->sending_len = 0;
+  // sock->sending_buf = NULL;
+  // sock->sending_len = 0;
 
   sock->received_buf = NULL;
   sock->received_len = 0;

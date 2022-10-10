@@ -36,9 +36,6 @@ int height(treeNode*N) {
   return N->height;
 }
 
-int max(int a, int b) {
-  return (a > b) ? a : b;
-}
 
 /**
 * @brief Create a new Tree(Node)
@@ -241,7 +238,7 @@ struct treeNode *find_key(struct treeNode *root, int key, struct treeNode** ret,
   if (root == NULL){
     return root;
   }
-  _debug_("rootk:%d <-> key:%d\n",root->key, key);
+  // _debug_("rootk:%d <-> key:%d\n",root->key, key);
   if (key < root->key){
     root->left = find_key(root->left, key, ret, flag);
   }else if (key > root->key){
@@ -250,17 +247,12 @@ struct treeNode *find_key(struct treeNode *root, int key, struct treeNode** ret,
     _debug_("Found key: %d\n" ,key);
     if ((root->left == NULL) || (root->right == NULL)) {
       if(root->left == NULL && root->right==NULL){
-        _debug_("key: %d's Left and Right == NULL\n",key);
       }else if(root->left == NULL){
-        _debug_("key: %d's Left == NULL\n",key);
       }else{
-        _debug_("key: %d's Right == NULL\n",key);
       }
       if(flag){
-        _debug_("MEMCPY\n");
         if(*ret == NULL) *ret = malloc(sizeof(treeNode));
         memcpy(*ret, root, sizeof(treeNode));
-        _debug_("MEMCPY\n");
       }
       // WARN: Potential Memory Leaking
       struct treeNode *temp = root->left ? root->left : root->right;
@@ -278,10 +270,8 @@ struct treeNode *find_key(struct treeNode *root, int key, struct treeNode** ret,
         pre->left = NULL; // TODO: check 这个去除的对不对
       }
       if(flag){
-        _debug_("MEMCPY\n");
         if(*ret == NULL) *ret = malloc(sizeof(treeNode));
         memcpy(*ret, root, sizeof(treeNode));
-        _debug_("MEMCPY\n");
       }
       root->key = temp->key;
       memcpy(root->value, temp->value, sizeof(tju_packet_t));
