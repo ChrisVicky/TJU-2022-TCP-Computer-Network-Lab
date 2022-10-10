@@ -18,9 +18,8 @@ void free_tree_node(struct treeNode* root){
   _debug_("Root Not NULL: %d\n" ,root->key);
   if(root->left!=NULL) {_debug_("free Left\n");free_tree_node(root->left);}
   if(root->right!=NULL) {_debug_("free right\n");free_tree_node(root->right);}
-  if(root->value!=NULL)
-    free(root->value);
-  free(root);
+  if(root->value!=NULL){free(root->value); root->value = NULL;}
+  free(root); root = NULL;
   return;
 }
 struct myTree* init_tree(){
@@ -359,4 +358,5 @@ tju_packet_t* get_value(struct myTree *root, int key){
 void free_tree(struct myTree* node){
   free_tree_node(node->root);
   free(node);
+  node = NULL;
 }

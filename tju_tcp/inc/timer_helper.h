@@ -12,7 +12,7 @@
 typedef struct timer_event{
   struct timespec * create_at;
   struct timespec * timeout_at;
-  void * args;                // 调用函数传递的参数
+  tju_packet_t * args;                // 调用函数传递的参数
   void * (*callback)(void *, void *); // 调用的函数
 }timer_event;
 
@@ -35,6 +35,7 @@ uint64_t get_recent_timeout(struct timer_list *list);
 uint32_t set_timer(struct timer_list *list, uint32_t sec, uint64_t nano_sec, void *(*callback)(void *, void*), void *args);
 int check_timer(tju_tcp_t * sock);
 uint32_t set_timer_without_mutex(struct timer_list *list,uint32_t sec,uint64_t nano_sec,void *(*callback)(void *, void*),void *args);
-int destroy_timer(tju_tcp_t* sock, uint32_t id, int destroy, void (*des)(void *, void*));
+int destroy_timer(tju_tcp_t* sock, uint32_t id, void(*)(void*, void*));
 int get_list_size(struct timer_list*);
+void print_timers(timer_list* list);
 #endif // !__LIST_H__

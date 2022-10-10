@@ -8,7 +8,7 @@
 #define EACHSIZE 10*MIN_LEN
 #define MAXSIZE 50*MIN_LEN*MIN_LEN
 
-int t_times = 5000;
+int t_times = 1000;
 char allbuf[MAXSIZE] = {'\0'}; //设置全局变量
 
 void fflushbeforeexit(int signo){
@@ -94,6 +94,7 @@ int main(int argc, char **argv) {
   size_t ret = fwrite(allbuf, sizeof(char), sizeof(allbuf), wfile);
   fclose(wfile);
 
+  // sleep_no_wake(100);
   sleep_no_wake(100);
 
   return EXIT_SUCCESS;

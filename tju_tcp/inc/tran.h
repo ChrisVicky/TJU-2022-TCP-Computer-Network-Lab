@@ -12,5 +12,6 @@ void *retransit_thread(timer_list *list);
 pthread_t start_work_thread(tju_tcp_t*);
 timer_list* init_retransmit_timer();
 
+void free_retrans_arg(timer_event* ptr, tju_tcp_t* sock) ;
 void * send_work_thread(tju_tcp_t* sock);
 #endif //__TRAN_H__

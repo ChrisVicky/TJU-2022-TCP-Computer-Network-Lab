@@ -7,7 +7,7 @@
 #define MAXSIZE 50*MIN_LEN*MIN_LEN
 
 // 全局变量
-int t_times = 50000;
+int t_times = 1000;
 
 void sleep_no_wake(int sec){  
   do{          
@@ -63,7 +63,8 @@ int main(int argc, char **argv) {
 
   free(file_buf);
 
-  sleep_no_wake(100);
+  // sleep_no_wake(100);
 
+  sleep_no_wake(100);
   return EXIT_SUCCESS;
 }

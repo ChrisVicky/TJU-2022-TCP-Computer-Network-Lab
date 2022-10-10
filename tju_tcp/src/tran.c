@@ -32,6 +32,8 @@ void update_rtt(double rtt, tju_tcp_t *tju_tcp) {
 }
 
 void *retransmit(tju_packet_t* pkt, tju_tcp_t* tju_tcp) {
+  print_timers(tju_tcp->timers);
+  _debug_("RETRAN\n");
   _debug_("1 seq: %d, transmit : timeout at %f\n",pkt->header.seq_num,tju_tcp->window.wnd_send->rto);
   uint32_t id = set_timer_without_mutex(tju_tcp->timers,0,SEC2NANO(tju_tcp->window.wnd_send->rto),(void *(*)(void *, void*)) retransmit, pkt);
   uint16_t dlen = pkt->header.plen - pkt->header.hlen;
@@ -42,6 +44,7 @@ void *retransmit(tju_packet_t* pkt, tju_tcp_t* tju_tcp) {
 }
 
 uint32_t send_with_retransmit(tju_tcp_t *sock, tju_packet_t *pkt, int requiring_ack){
+  safe_packet_sender(pkt);
   if (requiring_ack) {
     uint32_t id = 0;
     id = set_timer(sock->timers, 0, SEC2NANO(sock->window.wnd_send->rto), (void *(*)(void *, void*)) retransmit, pkt);
@@ -50,7 +53,6 @@ uint32_t send_with_retransmit(tju_tcp_t *sock, tju_packet_t *pkt, int requiring_
     _debug_("set timer %d expecting ack: %d, timeout at %f\n", id, pkt->header.seq_num + dlen + 1, sock->window.wnd_send->rto);
   }
   // trace_send(pkt->header.seq_num, pkt->header.ack_num, pkt->header.flags);
-  safe_packet_sender(pkt);
   return 0;
 }
 
@@ -63,6 +65,7 @@ void free_retrans_arg(timer_event* ptr, tju_tcp_t* sock) {
   update_rtt((current_time - create_time) / 1000000000.0, sock);
   _debug_("Finish Update\n");
   free(ptr->args);
+  ptr->args = NULL;
 }
 
 /**
@@ -75,17 +78,20 @@ void free_retrans_arg(timer_event* ptr, tju_tcp_t* sock) {
 *          0: not first time
 */
 int received_ack(uint32_t ack, tju_tcp_t *sock) {
-
-  for(last_ack;last_ack<=ack;last_ack++){
-  if (ack_id_hash[last_ack] != 0) {
-    _debug_("Start Destroying timer: %d\n" ,ack_id_hash[last_ack]);
-    uint32_t tmp = sock->window.wnd_send->base;
-    destroy_timer(sock, ack_id_hash[last_ack], 1, (void(*)(void*, void*))free_retrans_arg);
-    ack_id_hash[last_ack] = 0;
-    return 1;
+  _debug_("Received: %d\n" ,ack);
+  int ret = 0;
+  for(last_ack=0;last_ack<=ack;last_ack++){
+    if (ack_id_hash[last_ack] != 0) {
+      _debug_("Start Destroying timer: %d\n" ,ack_id_hash[last_ack]);
+      uint32_t tmp = sock->window.wnd_send->base;
+      destroy_timer(sock, ack_id_hash[last_ack],(void(*)(void*, void*))free_retrans_arg);
+      _debug_("After Destroy one timer\n");
+      ack_id_hash[last_ack] = 0;
+      ret = 1;
+      // return 1;
+    }
   }
-  }
-  return 0;
+  return ret;
 }
 
 void *transit_work_thread(tju_tcp_t* sock) {
@@ -115,13 +121,15 @@ pthread_t start_work_thread(tju_tcp_t *sock) {
 */
 void * send_work_thread(tju_tcp_t* sock){
   while(TRUE){
-    if(!is_empty_q(sock->sending_queue)) {
+    while(!is_empty_q(sock->sending_queue)) {
       sock->window.wnd_send->swnd = min(sock->window.wnd_send->rwnd, sock->window.wnd_send->cwnd);
       int size = sock->timers->size; 
       int swnd = sock->window.wnd_send->swnd;
 
-      if(size >= sock->window.wnd_send->swnd) 
-        continue; // Make sure the other side has enough space 
+      if (size >= sock->window.wnd_send->swnd){
+        _debug_("size: %d, swnd: %d\n" ,size, sock->window.wnd_send->swnd);
+        continue;
+      }
 
       trace_swnd(swnd);
       tju_packet_t *pkt = pop_q(sock->sending_queue);
