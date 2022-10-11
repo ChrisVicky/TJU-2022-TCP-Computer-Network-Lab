@@ -55,7 +55,6 @@ tju_tcp_t* tju_socket(){
   pthread_t sender_thread;
   pthread_create(&sender_thread, NULL, (void *(*)(void *)) send_work_thread, sock);
   _debug_("sending thread: %ld\n",sender_thread);
-  start_work_thread(sock);
 
   return sock;
 }
@@ -177,6 +176,7 @@ int tju_send(tju_tcp_t* sock, const void *buffer, int len){
     if(send_len==0) break;
     _debug_("Waiting for not FULL\n");
     while(is_full_q(sock->sending_queue));
+    while(pthread_mutex_lock(&sock->sending_queue->q_lock)!=0);
     tju_packet_t *pkt = create_packet(sock->established_local_addr.port, sock->established_remote_addr.port,
                                       sock->window.wnd_send->nextseq, 0,
                                       DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN + send_len, NO_FLAG, 1, 0,
@@ -184,6 +184,7 @@ int tju_send(tju_tcp_t* sock, const void *buffer, int len){
     _debug_("[tju_send] seq: %d , dlen: %d inqueue, qsize: %d\n" ,sock->window.wnd_send->nextseq, send_len, sock->sending_queue->size);
     sock->window.wnd_send->nextseq += send_len;
     push_q(sock->sending_queue, pkt);
+    pthread_mutex_unlock(&sock->sending_queue->q_lock);
   }
   return 0;
 }
@@ -194,7 +195,7 @@ int tju_recv(tju_tcp_t* sock, void *buffer, int len){
     // 阻塞
   }
   _debug_("pthread_lock\n");
-  // while(pthread_mutex_lock(&(sock->recv_lock)) != 0); // 加锁
+  while(pthread_mutex_lock(&(sock->recv_lock)) != 0); // 加锁
 
   int read_len = 0;
   if (sock->received_len >= len){ // 从中读取len长度的数据
@@ -218,7 +219,7 @@ int tju_recv(tju_tcp_t* sock, void *buffer, int len){
   sock->window.wnd_recv->rwnd = (INIT_WINDOW_SIZE*MAX_DLEN - sock->received_len) / MAX_DLEN;
   // NOTE: 此处为 Server 端更新，rwnd 信息应在 client 端输出
   // trace_rwnd(sock->window.wnd_recv->rwnd);
-  // pthread_mutex_unlock(&(sock->recv_lock)); // 解锁
+  pthread_mutex_unlock(&(sock->recv_lock)); // 解锁
 
   return read_len;
 }
@@ -236,17 +237,18 @@ void recv_buf_push(tju_tcp_t* sock, char* pkt){
   uint32_t seq = get_seq(pkt);
   uint32_t data_len = get_plen(pkt) - DEFAULT_HEADER_LEN;
   trace_delv(seq, data_len);
+  _debug_("recvlen: %d, buf_NULL: %d, datalen: %d\n", sock->received_len, (sock->received_buf==NULL), data_len);
   if (sock->received_buf == NULL || sock->received_len == 0) {
     sock->received_buf = malloc(data_len);
   } else {
     sock->received_buf = realloc(sock->received_buf, sock->received_len + data_len);
   }
+  _debug_("TMP1\n");
   memcpy(sock->received_buf + sock->received_len, pkt + DEFAULT_HEADER_LEN, data_len);
+  _debug_("TMP2\n");
   sock->received_len += data_len;
   sock->window.wnd_recv->rwnd = (INIT_WINDOW_SIZE*MAX_DLEN - sock->received_len) / MAX_DLEN;
   sock->window.wnd_recv->expect_seq += data_len;
-  // SEND ACK
-  ack_back(src_port, dst_port, sock);
 }
 
 int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
@@ -328,8 +330,13 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
         seed ++;
         int t = seed%20;
         if(t > 18){
-          _debug_("t: %d, Hit, Drop Pkt %d\n" ,t,seq);
-          break;
+          int w = rand()%seed;
+          if(w > seed / 2){
+            _debug_("t: %d, Hit, Drop Pkt %d\n" ,t,seq);
+            break;
+          }else{
+            _debug_("t: %d, NOT Hit, Don't drop\n" ,t);
+          }
         }else{
           _debug_("t: %d, NOT Hit, Don't drop\n" ,t);
         }
@@ -338,33 +345,32 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
         // NOTE: Check if seq is less than the last ack 
         // NOTE: (in which case the pkt is saved, and should get dropped);
         if(seq < sock->window.wnd_recv->expect_seq){
-          _debug_("PKT received with seq: %d, dlen: %d, expect seq: %d\n", seq, data_len, sock->window.wnd_recv->expect_seq);
           ack_back(src_port, dst_port, sock);
-          _debug_("Pkt Received, Drop pkt\n");
-          _debug_("PKT received with seq: %d, dlen: %d, expect seq: %d\n", seq, data_len, sock->window.wnd_recv->expect_seq);
         }else if (data_len > 0 ) {
           if (sock->window.wnd_recv->expect_seq == seq) {
             _debug_("pthread_lock\n");
             while(pthread_mutex_lock(&(sock->recv_lock))!=0); // 加锁
 
             recv_buf_push(sock, pkt);
-
             tju_packet_t *tmp = get_value(sock->window.wnd_recv->buff_tree, sock->window.wnd_recv->expect_seq);
 
             while (tmp != NULL) {
               _debug_("Find buffered packet with seq: %d\n", tmp->header.seq_num);
               char * tmp_pkt = packet_to_buf(tmp);
               recv_buf_push(sock, tmp_pkt);
+              _debug_("recved to buf\n");
               free(tmp_pkt); tmp_pkt = NULL;
               free(tmp->data); tmp->data = NULL; free(tmp); tmp = NULL;
               _debug_("expect_seq:%d\n", sock->window.wnd_recv->expect_seq);
               tmp = get_value(sock->window.wnd_recv->buff_tree, sock->window.wnd_recv->expect_seq);
             }
+            ack_back(src_port, dst_port, sock);
             pthread_mutex_unlock(&(sock->recv_lock)); // 解锁
           }else{
             // NOTE: Only when seq mismatch, indicating that Older Packet arrived;
             // AVL Tree 自平衡二叉树 --> 插入，删除，查找 lg(n) 
             insert_key_value(sock->window.wnd_recv->buff_tree, seq, buf_to_packet(pkt));
+            ack_back(src_port, dst_port, sock);
           }
         }
       }

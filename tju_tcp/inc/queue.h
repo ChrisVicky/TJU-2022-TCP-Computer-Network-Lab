@@ -1,6 +1,7 @@
 #ifndef __QUEUE_H__ 
 #define __QUEUE_H__
-#include "tju_tcp.h"
+#include "global.h"
+#include "debug.h"
 #include <stdio.h>
 #define MAX_QUEUE_SIZE 50
 

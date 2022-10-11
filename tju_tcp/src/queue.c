@@ -12,9 +12,7 @@ myQueue* init_q(){
 
 int push_q(myQueue* q, void *data){
   _debug_("pthread_lock\n");
-  // pthread_mutex_lock(&q->q_lock);
   if(q->size == MAX_QUEUE_SIZE){
-    pthread_mutex_unlock(&q->q_lock);
     return 0;
   }
   struct myNode * new_node = (myNode*)malloc(sizeof(struct myNode));
@@ -34,14 +32,11 @@ int push_q(myQueue* q, void *data){
     q->tail = new_node;
     q->size ++;
   }
-  // _debug_("qsize: %d\n" ,q->size);
-  // pthread_mutex_unlock(&q->q_lock);
   return q->size;
 }
 
 void *pop_q(myQueue* q){
   _debug_("pthread_lock\n");
-  // pthread_mutex_lock(&q->q_lock);
   if(q->size==0) return NULL;
   q->size -- ;
   void *data = q->head->data;
@@ -50,7 +45,6 @@ void *pop_q(myQueue* q){
   free(to_free);
   to_free = NULL;
   _debug_("qsize: %d\n" ,q->size);
-  // pthread_mutex_unlock(&q->q_lock);
   return data;
 }
 

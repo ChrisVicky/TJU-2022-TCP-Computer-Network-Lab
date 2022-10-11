@@ -160,4 +160,9 @@ typedef struct transmit_arg_t{
   void * pkt;
 }transmit_arg_t;
 
+typedef struct pair{
+  int id;
+  uint64_t timeout;
+}pair;
+
 #endif
