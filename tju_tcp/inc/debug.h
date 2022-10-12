@@ -6,7 +6,7 @@
 #include <arpa/inet.h>
 #include "global.h"
 #include "pthread.h"
-#define DEBUG_FLAG 1
+#define DEBUG_FLAG 0
 extern pthread_mutex_t thread_print_lock;
 #define OUTPUT_FILE 1 
 extern FILE* debug_file;

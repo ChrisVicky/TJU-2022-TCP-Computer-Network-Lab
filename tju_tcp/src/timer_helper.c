@@ -189,6 +189,7 @@ int check_timer(tju_tcp_t *sock){
       }
     }
     destroy_timer(sock, id);
+    print_timers(list);
     set_ack_id_hash(p->id, 0);
     free(p); p = NULL;
   }

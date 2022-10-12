@@ -273,8 +273,8 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
   uint32_t ack = get_ack(pkt);
   uint16_t rwnd_pkt = get_advertised_window(pkt);
   if (flag & ACK_FLAG_MASK) {
+    sock->window.wnd_send->rwnd = rwnd_pkt;
     if(received_ack(ack, sock) && sock->state==ESTABLISHED){
-      sock->window.wnd_send->rwnd = rwnd_pkt;
       trace_rwnd(rwnd_pkt);
     }
   }
@@ -351,6 +351,15 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
         }
       }
       if (flag == NO_FLAG) {
+        seed++;
+        if(seed%20 == 0){
+          if(rand()%seed > seed/2){
+            _debug_("HIT, DROP pkt: %d\n" ,seq);
+            break;
+          }
+        }else{
+          _debug_("NOT HIT, Don't drop pkt: %d\n", seq);
+        }
         _debug_("PKT received with seq: %d, dlen: %d, expect seq: %d\n", seq, data_len, sock->window.wnd_recv->expect_seq);
 
         // NOTE: Check if seq is less than the last ack 
@@ -383,6 +392,8 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
             insert_key_value(sock->window.wnd_recv->buff_tree, seq, buf_to_packet(pkt));
             ack_back(src_port, dst_port, sock, 0);
           }
+        }else{
+          ack_back(src_port, dst_port, sock, 0);
         }
       } 
       break;

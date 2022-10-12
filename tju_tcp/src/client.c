@@ -7,7 +7,7 @@
 #define MAXSIZE 50*MIN_LEN*MIN_LEN
 
 // 全局变量
-int t_times = 3;
+int t_times = 1000;
 
 void sleep_no_wake(int sec){  
   do{          
@@ -65,7 +65,7 @@ int main(int argc, char **argv) {
 
   // sleep_no_wake(100);
 
-  // sleep_no_wake(5);
-  tju_close(my_socket);
+  sleep_no_wake(5);
+  // tju_close(my_socket);
   return EXIT_SUCCESS;
 }

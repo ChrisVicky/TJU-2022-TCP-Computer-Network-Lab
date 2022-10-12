@@ -104,6 +104,13 @@ int received_ack(uint32_t ack, tju_tcp_t *sock) {
   return ret;
 }
 
+tju_packet_t* mk_empty_pkt(tju_tcp_t* sock){
+  return create_packet(sock->established_local_addr.port, sock->established_remote_addr.port,
+                       sock->window.wnd_send->nextseq, 0, 
+                       DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, 
+                       NO_FLAG, sock->window.wnd_recv->rwnd, 0, NULL, 0);
+}
+
 /**
 * @brief A Thread for Sending pkt
 *
@@ -120,9 +127,14 @@ void * send_work_thread(tju_tcp_t* sock){
       int size = sock->timers->size; 
       int swnd = sock->window.wnd_send->swnd;
       if (size < sock->window.wnd_send->swnd){
+        _debug_("size %d vs %d\n" ,size, sock->window.wnd_send->swnd);
         trace_swnd(swnd);
         tju_packet_t *pkt = pop_q(sock->sending_queue);
         send_with_retransmit(sock, pkt, TRUE);
+      }else if(sock->window.wnd_send->swnd==0){
+        tju_packet_t* pkt = mk_empty_pkt(sock);
+        send_with_retransmit(sock, pkt, FALSE);
+        _debug_("size %d vs %d\n" ,size, sock->window.wnd_send->swnd);
       }
     }
     pthread_mutex_unlock(&sock->sending_queue->q_lock);
