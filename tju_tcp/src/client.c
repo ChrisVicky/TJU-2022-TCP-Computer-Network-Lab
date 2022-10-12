@@ -7,7 +7,7 @@
 #define MAXSIZE 50*MIN_LEN*MIN_LEN
 
 // 全局变量
-int t_times = 1000;
+int t_times = 3;
 
 void sleep_no_wake(int sec){  
   do{          
@@ -30,7 +30,7 @@ int main(int argc, char **argv) {
 
   _debug_line_("Connection Established, Start");
 
-  sleep_no_wake(8);
+  sleep_no_wake(3);
   printf("Sleep End\n");
   int fd =  open("./rdt_send_file.txt",O_RDWR);
   if(-1 == fd) {
@@ -65,6 +65,7 @@ int main(int argc, char **argv) {
 
   // sleep_no_wake(100);
 
-  sleep_no_wake(100);
+  // sleep_no_wake(5);
+  tju_close(my_socket);
   return EXIT_SUCCESS;
 }

@@ -50,7 +50,11 @@ uint32_t send_with_retransmit(tju_tcp_t *sock, tju_packet_t *pkt, int requiring_
     uint32_t id = 0;
     id = set_timer(sock->timers, 0, SEC2NANO(sock->window.wnd_send->rto), (void *(*)(void *, void*)) retransmit, pkt);
     uint16_t dlen = pkt->header.plen - pkt->header.hlen;
-    ack_id_hash[pkt->header.seq_num + dlen] = id;
+    if(pkt->header.flags!=NO_FLAG){
+      ack_id_hash[pkt->header.seq_num + dlen + 1] = id;
+    }else{
+      ack_id_hash[pkt->header.seq_num + dlen] = id;
+    }
   }
   safe_packet_sender(pkt);
   // trace_send(pkt->header.seq_num, pkt->header.ack_num, pkt->header.flags);

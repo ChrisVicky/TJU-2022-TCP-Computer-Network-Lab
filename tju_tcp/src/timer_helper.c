@@ -241,6 +241,19 @@ int destroy_timer(tju_tcp_t* sock, uint32_t id) {
         list->tail = prev;
       }
       _debug_("DestroyIng timer: %d, seq: %d\n",id,iter->event->args->header.seq_num);
+      if(iter->event->args->header.flags & FIN_FLAG_MASK){
+        _debug_("flags FIN\n");
+        if(sock->state == FIN_WAIT_1){
+          sock->state = FIN_WAIT_2;
+          _debug_line_("Sock State: %d" ,FIN_WAIT_2);
+        }else if(sock->state == LAST_ACK){
+          sock->state = CLOSED;
+          _debug_line_("Sock State: %d" ,CLOSED);
+        }else{
+          _debug_line_("!! NOT HIT sock state: %d" ,sock->state);
+        }
+
+      }
       free_retrans_arg(iter->event, sock);
       free_timer_node(iter);
       list->size--;
