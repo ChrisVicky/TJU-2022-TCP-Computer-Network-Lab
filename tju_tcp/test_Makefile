@@ -15,8 +15,10 @@ OBJS = $(BUILD_DIR)/tju_packet.o \
 
 default:all
 
+# establish and rdt
 all: clean test_client test_server rdt_server rdt_client close_client 
 
+# close
 # all: clean test_client test_server rdt_server rdt_client close_client close_server_for_server
 
 clean:
