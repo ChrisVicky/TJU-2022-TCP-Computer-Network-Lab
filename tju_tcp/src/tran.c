@@ -82,7 +82,7 @@ void free_retrans_arg(timer_event* ptr, tju_tcp_t* sock) {
 */
 int received_ack(uint32_t ack, tju_tcp_t *sock) {
   _debug_("Received ack: %d\n" ,ack);
-  int ret = 0, min_ack_id, max_ack_id;
+  int ret = 0;
   _debug_("LAST ACK: %d, ACK: %d\n" ,last_ack, ack);
   while(last_ack<=ack){
     if (ack_id_hash[last_ack] != 0) {
@@ -123,12 +123,15 @@ void * send_work_thread(tju_tcp_t* sock){
     check_timer(sock);
     while(pthread_mutex_lock(&sock->sending_queue->q_lock)!=0);
     if(!is_empty_q(sock->sending_queue)) {
+      int pre = sock->window.wnd_send->swnd;
       sock->window.wnd_send->swnd = min(sock->window.wnd_send->rwnd, sock->window.wnd_send->cwnd);
       int size = sock->timers->size; 
       int swnd = sock->window.wnd_send->swnd;
       if (size < sock->window.wnd_send->swnd){
         _debug_("size %d vs %d\n" ,size, sock->window.wnd_send->swnd);
-        trace_swnd(swnd);
+        if(pre != sock->window.wnd_send->swnd){
+          trace_swnd(swnd);
+        }
         tju_packet_t *pkt = pop_q(sock->sending_queue);
         send_with_retransmit(sock, pkt, TRUE);
       }else if(sock->window.wnd_send->swnd==0){

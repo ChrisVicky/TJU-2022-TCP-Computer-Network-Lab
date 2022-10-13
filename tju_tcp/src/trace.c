@@ -77,6 +77,7 @@ void trace_recv(uint32_t seq, uint32_t ack, uint32_t flag){
 void trace_cwnd(uint32_t type, uint32_t size){
   _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
+  size = size * MAX_DLEN;
   fprintf(trace_file, "[%ld] [CWND] [type:%d size:%d]\n",get_current_time(), type, size);
   _trace_("[%ld] [CWND] [type:%d size:%d]\n",get_current_time(), type, size);
   pthread_mutex_unlock(&trace_mutex);
@@ -86,6 +87,7 @@ void trace_cwnd(uint32_t type, uint32_t size){
 void trace_rwnd(uint32_t size){
   _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
+  size = size * MAX_DLEN;
   fprintf(trace_file, "[%ld] [RWND] [size:%d]\n",get_current_time(),size);
   _trace_("[%ld] [RWND] [size:%d]\n",get_current_time(),size);
   pthread_mutex_unlock(&trace_mutex);
@@ -95,6 +97,7 @@ void trace_rwnd(uint32_t size){
 void trace_swnd(uint32_t size){
   _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
+  size = size * MAX_DLEN;
   fprintf(trace_file, "[%ld] [SWND] [size:%d]\n",get_current_time(),size);
   _trace_("[%ld] [SWND] [size:%d]\n",get_current_time(),size);
   pthread_mutex_unlock(&trace_mutex);
