@@ -40,14 +40,18 @@ tju_tcp_t* tju_socket(){
   sock->window.wnd_send = (sender_window_t*)   malloc(sizeof(sender_window_t));
   sock->window.wnd_recv = (receiver_window_t*) malloc(sizeof(receiver_window_t));
 
+  sock->window.wnd_send->rwnd = INIT_WINDOW_SIZE;
   sock->window.wnd_send->rto = INIT_RTT;
   sock->window.wnd_send->estmated_rtt = INIT_RTT;
-  sock->window.wnd_send->window_size = INIT_WINDOW_SIZE;
-  sock->window.wnd_send->prev_ack_count = 0;
-  sock->window.wnd_send->prev_ack = 0;
-  sock->window.wnd_send->rwnd = INIT_WINDOW_SIZE;
   sock->window.wnd_send->dev_rtt = 0;
-  sock->window.wnd_send->cwnd = INIT_WINDOW_SIZE;
+
+  sock->window.wnd_send->con = (congestion_t*)malloc(sizeof(congestion_t));
+  pthread_mutex_init(&(sock->window.wnd_send->con->lock), NULL);
+  sock->window.wnd_send->con->ssthresh = INIT_WINDOW_SIZE;
+  sock->window.wnd_send->con->cwnd = 3;
+  sock->window.wnd_send->con->con_state = SLOW_START;
+  sock->window.wnd_send->con->prev_ack = 0;
+  sock->window.wnd_send->con->prev_ack_count = 0;
 
   sock->window.wnd_recv->buff_tree = init_tree(); 
   sock->window.wnd_recv->rwnd = INIT_WINDOW_SIZE;
@@ -235,8 +239,8 @@ int tju_recv(tju_tcp_t* sock, void *buffer, int len){
   return read_len;
 }
 void ack_back(uint16_t src_port, uint16_t dst_port, tju_tcp_t* sock, int flag){
-	int seq = sock->window.wnd_recv->expect_seq;
-	if(flag) seq = flag + 1;
+  int seq = sock->window.wnd_recv->expect_seq;
+  if(flag) seq = flag + 1;
   tju_packet_t *ack_pkt = create_packet(dst_port, src_port, sock->window.wnd_send->nextseq, seq,
                                         DEFAULT_HEADER_LEN, DEFAULT_HEADER_LEN, ACK_FLAG_MASK, sock->window.wnd_recv->rwnd, 0, NULL, 0);
   send_with_retransmit(sock, ack_pkt, FALSE);
@@ -275,10 +279,12 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
   uint32_t ack = get_ack(pkt);
   uint16_t rwnd_pkt = get_advertised_window(pkt);
   if (flag & ACK_FLAG_MASK) {
-    sock->window.wnd_send->rwnd = rwnd_pkt;
-    if(received_ack(ack, sock) && sock->state==ESTABLISHED){
+    if(rwnd_pkt != sock->window.wnd_send->rwnd){
       trace_rwnd(rwnd_pkt);
     }
+    sock->window.wnd_send->rwnd = rwnd_pkt;
+    received_ack(ack, sock);
+
   }
   uint16_t src_port = get_src(pkt);
   uint16_t dst_port = get_dst(pkt);
@@ -350,12 +356,12 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
     case FIN_WAIT_2:
     case FIN_WAIT_1:
       if((sock->state == FIN_WAIT_1) && (flag & ACK_FLAG_MASK) && (ack==sock->window.wnd_send->nextseq)){
-	      sock->state = FIN_WAIT_2;
+        sock->state = FIN_WAIT_2;
       }
     case ESTABLISHED:
       if(flag & FIN_FLAG_MASK){
         ack_back(src_port, dst_port, sock, seq);
-	sock->window.wnd_send->nextseq++;
+        sock->window.wnd_send->nextseq++;
         if(sock->state==ESTABLISHED){
           sock->state = CLOSE_WAIT;
           tju_packet_t* fin_pkt = create_packet(sock->established_local_addr.port, sock->established_remote_addr.port,
@@ -370,16 +376,16 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
         }
       }
       if (flag == NO_FLAG) {
-	// Emitation on the pkt drop action
-        // seed++;
-        // if(seed%20 == 0){
-        //   if(rand()%seed > seed/2){
-        //     _debug_("HIT, DROP pkt: %d\n" ,seq);
-        //     break;
-        //   }
-        // }else{
-        //   _debug_("NOT HIT, Don't drop pkt: %d\n", seq);
-        // }
+        // Emitation on the pkt drop action
+        seed++;
+        if(seed%20 == 0){
+          if(rand()%seed > seed/2){
+            _debug_("HIT, DROP pkt: %d\n" ,seq);
+            break;
+          }
+        }else{
+          _debug_("NOT HIT, Don't drop pkt: %d\n", seq);
+        }
         _debug_("PKT received with seq: %d, dlen: %d, expect seq: %d\n", seq, data_len, sock->window.wnd_recv->expect_seq);
 
         // NOTE: Check if seq is less than the last ack 

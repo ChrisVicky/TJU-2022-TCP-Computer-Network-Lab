@@ -8,6 +8,8 @@ extern uint32_t get_ack_id_hash(int id);
 
 extern void set_ack_id_hash(int id, uint32_t value);
 
+extern void congestion_handler(tju_tcp_t* sock);
+
 uint64_t get_create_time(timer_list* list, int id) {
   timer_node* ptr = list->head;
   while(ptr!=NULL){
@@ -197,13 +199,15 @@ int check_timer(tju_tcp_t *sock){
 
   struct timer_node *iter = list->head;
   struct timer_node *prev = NULL;
-  if(iter!=NULL){ // 能过
+  int time_out_flag = 0;
+  while(iter!=NULL){ // 能过
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
     uint64_t current_time = TIMESPEC2NANO(now);
     uint64_t timeout = TIMESPEC2NANO((*(iter->event->timeout_at)));
     uint64_t time_create = TIMESPEC2NANO((*(iter->event->create_at)));
     if (timeout <= current_time) {
+      time_out_flag = 1;
       print_timers(list);
       _debug_("%ld + %ld <= %ld(timeout) %ld\n",time_create,timeout-time_create, current_time, current_time - timeout);
       if (prev == NULL) {
@@ -219,10 +223,20 @@ int check_timer(tju_tcp_t *sock){
       }
       list->size--;
       struct timer_node *tmp = iter;
+      iter = iter->next;
       _debug_("timer %d timeout\n", tmp->id);
       tmp->event->callback(tmp->event->args, sock);
       free_timer_node(tmp);
+    }else{
+      break;
     }
+  }
+  // CHECK TIME_OUT for CONGESTION WINDOW
+  if(time_out_flag && sock->state==ESTABLISHED){
+    while(pthread_mutex_lock(&sock->window.wnd_send->con->lock)!=0);
+    sock->window.wnd_send->con->con_state = TIME_OUT;
+    congestion_handler(sock);
+    pthread_mutex_unlock(&sock->window.wnd_send->con->lock);
   }
   return 0;
 }

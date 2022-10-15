@@ -84,6 +84,18 @@ int received_ack(uint32_t ack, tju_tcp_t *sock) {
   _debug_("Received ack: %d\n" ,ack);
   int ret = 0;
   _debug_("LAST ACK: %d, ACK: %d\n" ,last_ack, ack);
+  congestion_t* con = sock->window.wnd_send->con;
+  while(pthread_mutex_lock(&con->lock)!=0);
+  if(con->prev_ack == ack){
+    con->prev_ack_count++;
+    if(con->prev_ack_count == 3 && con->con_state != TIME_OUT) con->con_state = FAST_RECOVERY;
+  }else{
+    con->prev_ack_count = 0;
+    con->prev_ack = ack;
+  }
+  congestion_handler(sock);
+  pthread_mutex_unlock(&con->lock);
+
   while(last_ack<=ack){
     if (ack_id_hash[last_ack] != 0) {
       pair *p = malloc(sizeof(pair));
@@ -124,12 +136,12 @@ void * send_work_thread(tju_tcp_t* sock){
     while(pthread_mutex_lock(&sock->sending_queue->q_lock)!=0);
     if(!is_empty_q(sock->sending_queue)) {
       int pre = sock->window.wnd_send->swnd;
-      sock->window.wnd_send->swnd = min(sock->window.wnd_send->rwnd, sock->window.wnd_send->cwnd);
+      sock->window.wnd_send->swnd = min(sock->window.wnd_send->rwnd, sock->window.wnd_send->con->cwnd);
       int size = sock->timers->size; 
       int swnd = sock->window.wnd_send->swnd;
       if (size < sock->window.wnd_send->swnd){
         _debug_("size %d vs %d\n" ,size, sock->window.wnd_send->swnd);
-        if(pre != sock->window.wnd_send->swnd){
+        if(pre != swnd){
           trace_swnd(swnd);
         }
         tju_packet_t *pkt = pop_q(sock->sending_queue);
@@ -143,3 +155,33 @@ void * send_work_thread(tju_tcp_t* sock){
     pthread_mutex_unlock(&sock->sending_queue->q_lock);
   }
 }
+
+void congestion_handler(tju_tcp_t* sock){
+  congestion_t* con = sock->window.wnd_send->con;
+  int state = con->con_state;
+  switch(con->con_state){
+    case SLOW_START:
+      con->cwnd = min(2*con->cwnd, con->ssthresh);
+      if(con->cwnd==con->ssthresh){
+        con->con_state = CONGESTION_AVOIDANCE;
+      }
+      break;
+    case CONGESTION_AVOIDANCE:
+      con->cwnd ++;
+      break;
+    case FAST_RECOVERY: 
+      con->ssthresh = max(con->cwnd / 2, 1);
+      con->cwnd = con->ssthresh + 3;
+      con->con_state = CONGESTION_AVOIDANCE;
+      break;
+    case TIME_OUT: 
+      con->ssthresh = max(con->cwnd / 2, 1);
+      con->cwnd = 1;
+      con->con_state = SLOW_START;
+      break;
+    default: 
+      _debug_("Should not be here, con_state: %d\n" ,sock->window.wnd_send->con->con_state);
+  }
+  trace_cwnd(state, con->cwnd);
+}
+

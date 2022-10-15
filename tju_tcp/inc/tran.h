@@ -15,4 +15,5 @@ timer_list* init_retransmit_timer();
 
 void free_retrans_arg(timer_event* ptr, tju_tcp_t* sock) ;
 void * send_work_thread(tju_tcp_t* sock);
+void congestion_handler(tju_tcp_t* sock);
 #endif //__TRAN_H__

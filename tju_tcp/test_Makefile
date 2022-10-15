@@ -16,10 +16,10 @@ OBJS = $(BUILD_DIR)/tju_packet.o \
 default:all
 
 # establish and rdt
-all: clean test_client test_server rdt_server rdt_client close_client 
+# all: clean test_client test_server rdt_server rdt_client close_client 
 
 # close
-# all: clean test_client test_server rdt_server rdt_client close_client close_server_for_server
+all: clean test_client test_server rdt_server rdt_client close_client close_server_for_server
 
 clean:
 	-rm -f test_client test_server rdt_server rdt_client close_client client.log server.log rdt_server.log rdt_client.log rdt_recv_file.txt

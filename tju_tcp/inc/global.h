@@ -28,9 +28,9 @@
 //RTT CALCULATION
 #define RTT_ALPHA 0.125
 #define RTT_BETA 0.25
-#define INIT_RTT 0.05
+#define INIT_RTT 0.07
 #define RTT_UBOUND 60
-#define RTT_LBOUND 0.05
+#define RTT_LBOUND 0.07
 
 #define INIT_WINDOW_SIZE 50
 
@@ -62,6 +62,7 @@
 #define SLOW_START 0
 #define CONGESTION_AVOIDANCE 1
 #define FAST_RECOVERY 2
+#define TIME_OUT 3
 
 // TCP 接受窗口大小
 #define TCP_RECVWN_SIZE 32*MAX_DLEN // 比如最多放32个满载数据包
@@ -76,20 +77,26 @@
 #define FIN_FLAG 3
 #define ACK_SYN_FLAG 4
 
+typedef struct congestion_t{
+	pthread_mutex_t lock;
+	uint16_t cwnd;
+	uint16_t ssthresh;
+	uint16_t con_state;
+  uint32_t prev_ack;
+  uint32_t prev_ack_count; // 记录冗余 ack 
+}congestion_t;
+
 
 // TCP 发送窗口
 // 注释的内容如果想用就可以用 不想用就删掉 仅仅提供思路和灵感
 typedef struct {
-  uint32_t window_size;
+  congestion_t* con; 
   uint32_t seq;
   uint32_t base;
   uint32_t nextseq;
-  uint32_t prev_ack;
-  uint32_t prev_ack_count; // 记录冗余 ack 
   double estmated_rtt;
   double rto;
   double dev_rtt;
-  uint16_t cwnd;
   uint16_t swnd;
   uint16_t rwnd;
 } sender_window_t;
