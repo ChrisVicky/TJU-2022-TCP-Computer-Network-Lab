@@ -10,8 +10,8 @@ void init_trace();
 
 long get_current_time();
 
-void trace_send(uint32_t seq, uint32_t ack, uint32_t flag);
-void trace_recv(uint32_t seq, uint32_t ack, uint32_t flag);
+void trace_send(uint32_t seq, uint32_t ack, uint32_t flag, uint32_t len);
+void trace_recv(uint32_t seq, uint32_t ack, uint32_t flag, uint32_t len);
 
 void trace_cwnd(uint32_t type, uint32_t size);
 void trace_rwnd(uint32_t size); // Recv windows buffer size 

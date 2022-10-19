@@ -3,7 +3,7 @@
 #include "global.h"
 #include "debug.h"
 #include <stdio.h>
-#define MAX_QUEUE_SIZE 50
+#define MAX_QUEUE_SIZE INIT_WINDOW_SIZE*2
 
 typedef struct myNode{
   void *data;

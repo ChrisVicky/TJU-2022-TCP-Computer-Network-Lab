@@ -5,10 +5,6 @@
 FILE *trace_file;
 FILE *debug_file;
 pthread_mutex_t trace_mutex = PTHREAD_MUTEX_INITIALIZER;
-#define TRACE_IT
-
-#ifdef TRACE_IT
-
 /**
 * @brief  Touch a new Trace File 
 *         while Removing the old one.
@@ -40,36 +36,24 @@ void init_trace() {
 long get_current_time(){
   struct timeval tv;
   gettimeofday(&tv, NULL);
-  return tv.tv_sec*1000 + tv.tv_usec/1000;
+  return tv.tv_sec*1000000 + tv.tv_usec;
 }
 
 
-void trace_send(uint32_t seq, uint32_t ack, uint32_t flag){
+void trace_send(uint32_t seq, uint32_t ack, uint32_t flag, uint32_t len){
   _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
-  char flag_str[32];
-  memset(flag_str, 0, sizeof(flag_str));
-  if(flag & SYN_FLAG_MASK) strcat(flag_str, "SYN|");
-  if(flag & ACK_FLAG_MASK) strcat(flag_str, "ACK|");
-  if(flag & FIN_FLAG_MASK) strcat(flag_str, "FIN|");
-  flag_str[strlen(flag_str)-1] = 0;
-  fprintf(trace_file, "[%ld] [SEND] [seq:%d ack:%d flag:%s]\n" ,get_current_time(), seq, ack, flag_str);
-  _trace_("[%ld] [SEND] [seq:%d ack:%d flag:%s]\n" ,get_current_time(), seq, ack, flag_str);
+  fprintf(trace_file, "[%ld] [SEND] [seq:%d ack:%d flag:%d length:%d]\n" ,get_current_time(), seq, ack, flag, len);
+  _trace_("[%ld] [SEND] [seq:%d ack:%d flag:%d length:%d]\n" ,get_current_time(), seq, ack, flag, len);
   pthread_mutex_unlock(&trace_mutex);
   return;
 }
 
-void trace_recv(uint32_t seq, uint32_t ack, uint32_t flag){
+void trace_recv(uint32_t seq, uint32_t ack, uint32_t flag, uint32_t len){
   _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
-  char flag_str[32];
-  memset(flag_str, 0, sizeof(flag_str));
-  if(flag & SYN_FLAG_MASK) strcat(flag_str, "SYN|");
-  if(flag & ACK_FLAG_MASK) strcat(flag_str, "ACK|");
-  if(flag & FIN_FLAG_MASK) strcat(flag_str, "FIN|");
-  flag_str[strlen(flag_str)-1] = 0;
-  fprintf(trace_file, "[%ld] [RECV] [seq:%d ack:%d flag:%s]\n" ,get_current_time(), seq, ack, flag_str);
-  _trace_("[%ld] [RECV] [seq:%d ack:%d flag:%s]\n" ,get_current_time(), seq, ack, flag_str);
+  fprintf(trace_file, "[%ld] [RECV] [seq:%d ack:%d flag:%d length:%d]\n" ,get_current_time(), seq, ack, flag, len);
+  _trace_("[%ld] [RECV] [seq:%d ack:%d flag:%d length:%d]\n" ,get_current_time(), seq, ack, flag, len);
   pthread_mutex_unlock(&trace_mutex);
   return;
 }
@@ -77,6 +61,7 @@ void trace_recv(uint32_t seq, uint32_t ack, uint32_t flag){
 void trace_cwnd(uint32_t type, uint32_t size){
   _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
+  size = size * 1375;
   fprintf(trace_file, "[%ld] [CWND] [type:%d size:%d]\n",get_current_time(), type, size);
   _trace_("[%ld] [CWND] [type:%d size:%d]\n",get_current_time(), type, size);
   pthread_mutex_unlock(&trace_mutex);
@@ -86,6 +71,7 @@ void trace_cwnd(uint32_t type, uint32_t size){
 void trace_rwnd(uint32_t size){
   _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
+  size = size * 1375;
   fprintf(trace_file, "[%ld] [RWND] [size:%d]\n",get_current_time(),size);
   _trace_("[%ld] [RWND] [size:%d]\n",get_current_time(),size);
   pthread_mutex_unlock(&trace_mutex);
@@ -95,6 +81,7 @@ void trace_rwnd(uint32_t size){
 void trace_swnd(uint32_t size){
   _debug_("pthread_lock\n");
   pthread_mutex_lock(&trace_mutex);
+  size = size * 1375;
   fprintf(trace_file, "[%ld] [SWND] [size:%d]\n",get_current_time(),size);
   _trace_("[%ld] [SWND] [size:%d]\n",get_current_time(),size);
   pthread_mutex_unlock(&trace_mutex);
@@ -119,22 +106,4 @@ void trace_delv(uint32_t seq, uint32_t size){
   pthread_mutex_unlock(&trace_mutex);
 }
 
-
-#else
-
-void init_trace(){}
-
-long get_current_time(){return 0;}
-
-void trace_send(uint32_t seq, uint32_t ack, uint32_t flag){}
-void trace_recv(uint32_t seq, uint32_t ack, uint32_t flag){}
-
-void trace_cwnd(uint32_t type, uint32_t size){}
-void trace_rwnd(uint32_t size){}
-
-void trace_swnd(uint32_t size){}
-void trace_rtts(double s, double e, double d, double t){}
-void trace_delv(uint32_t seq, uint32_t size){}
-
-#endif
 

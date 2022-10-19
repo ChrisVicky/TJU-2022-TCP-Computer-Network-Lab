@@ -14,7 +14,7 @@ extern FILE* debug_file;
 // [File:Line:Func]():Msg
 // if(0/1) Toggle
 
-// #define LOCKIT
+#define LOCKIT
 #ifdef LOCKIT 
 
 #define _print_(...) \

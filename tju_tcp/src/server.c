@@ -75,10 +75,10 @@ int main(int argc, char **argv) {
     alllen += len;
     free(buf);
 
+    _debug_("alllen: %d<->%d\n" ,alllen,t_times*EACHSIZE);
     if(print_s+EACHSIZE <= alllen){
       char tmpbuf[EACHSIZE] = {'\0'};
       memcpy(tmpbuf, allbuf+print_s, EACHSIZE);
-      // printf("[RDT TEST] server recv %ld %d\r", sizeof(tmpbuf),alllen);
       print_s += EACHSIZE;
     }
     fflush(stdout);

@@ -161,7 +161,7 @@ int tju_connect(tju_tcp_t* sock, tju_sock_addr target_addr){
 */
 void safe_packet_sender(tju_packet_t * packet){
   char *pkt = packet_to_buf(packet);
-  trace_send(packet->header.seq_num, packet->header.ack_num, packet->header.flags);
+  trace_send(packet->header.seq_num, packet->header.ack_num, packet->header.flags, packet->header.plen-DEFAULT_HEADER_LEN);
   sendToLayer3(pkt, packet->header.plen);
   free(pkt);
   pkt = NULL;
@@ -187,7 +187,7 @@ int tju_send(tju_tcp_t* sock, const void *buffer, int len){
       if(sock->state!=ESTABLISHED && sock->state!=CLOSE_WAIT){
         break;
       }
-      while(is_full_q(sock->sending_queue));
+			while(is_full_q(sock->sending_queue));
       while(pthread_mutex_lock(&sock->sending_queue->q_lock)!=0);
       tju_packet_t *pkt = create_packet(sock->established_local_addr.port, sock->established_remote_addr.port,
                                         sock->window.wnd_send->nextseq, 0,
@@ -289,7 +289,7 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
   uint16_t src_port = get_src(pkt);
   uint16_t dst_port = get_dst(pkt);
 
-  trace_recv(seq, ack, flag);
+  trace_recv(seq, ack, flag, data_len);
 
   tju_tcp_t *new_conn = NULL;
 
@@ -376,17 +376,17 @@ int tju_handle_packet(tju_tcp_t *sock, char *pkt) {
         }
       }
       if (flag == NO_FLAG) {
-        // Emitation on the pkt drop action
-        seed++;
-        if(seed%20 == 0){
-          if(rand()%seed > seed/2){
-            _debug_("HIT, DROP pkt: %d\n" ,seq);
-            break;
-          }
-        }else{
-          _debug_("NOT HIT, Don't drop pkt: %d\n", seq);
-        }
-        _debug_("PKT received with seq: %d, dlen: %d, expect seq: %d\n", seq, data_len, sock->window.wnd_recv->expect_seq);
+        // // Emitation on the pkt drop action
+        // seed++;
+        // if(seed%20 == 0){
+        //   if(rand()%seed > seed/2){
+        //     _debug_("HIT, DROP pkt: %d\n" ,seq);
+        //     break;
+        //   }
+        // }else{
+        //   _debug_("NOT HIT, Don't drop pkt: %d\n", seq);
+        // }
+        // _debug_("PKT received with seq: %d, dlen: %d, expect seq: %d\n", seq, data_len, sock->window.wnd_recv->expect_seq);
 
         // NOTE: Check if seq is less than the last ack 
         // NOTE: (in which case the pkt is saved, and should get dropped);

@@ -31,9 +31,9 @@ void print_timers(timer_list* list){
     struct timespec a = *(iter->event->timeout_at);
     uint64_t timeout = TIMESPEC2NANO(a);
     if(timeout > cur){
-      _print_("%d(%d: %ld) -> ",iter->event->args->header.seq_num,iter->id,TIMESPEC2NANO(a)-cur);
+      _print_("%d(%d: %f) -> ",iter->event->args->header.seq_num,iter->id,NANO2SEC(TIMESPEC2NANO(a)-cur));
     }else{
-      _print_("%d(%d: -%ld) -> ",iter->event->args->header.seq_num,iter->id,cur - timeout);
+      _print_("%d(%d: -%f) -> ",iter->event->args->header.seq_num,iter->id,NANO2SEC(cur - timeout));
     }
     iter = iter->next;
   }
@@ -174,6 +174,7 @@ struct timer_list* init_timer_list(){
 }
 
 int check_timer(tju_tcp_t *sock){
+  // Destroy Timer first
   timer_list* list = sock->timers;
   while(pthread_mutex_lock(&list->queue->q_lock)!=0);
   while(!is_empty_q(list->queue)){
@@ -200,7 +201,7 @@ int check_timer(tju_tcp_t *sock){
   struct timer_node *iter = list->head;
   struct timer_node *prev = NULL;
   int time_out_flag = 0;
-  while(iter!=NULL){ // 能过
+  if(iter!=NULL){ 
     struct timespec now;
     clock_gettime(CLOCK_REALTIME, &now);
     uint64_t current_time = TIMESPEC2NANO(now);
@@ -227,8 +228,6 @@ int check_timer(tju_tcp_t *sock){
       _debug_("timer %d timeout\n", tmp->id);
       tmp->event->callback(tmp->event->args, sock);
       free_timer_node(tmp);
-    }else{
-      break;
     }
   }
   // CHECK TIME_OUT for CONGESTION WINDOW

@@ -11,10 +11,6 @@ myQueue* init_q(){
 }
 
 int push_q(myQueue* q, void *data){
-  _debug_("pthread_lock\n");
-  if(q->size == MAX_QUEUE_SIZE){
-    return 0;
-  }
   struct myNode * new_node = (myNode*)malloc(sizeof(struct myNode));
 
   if(new_node == NULL) return q->size;

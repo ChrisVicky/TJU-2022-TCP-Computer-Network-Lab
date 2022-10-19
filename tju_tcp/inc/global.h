@@ -32,7 +32,11 @@
 #define RTT_UBOUND 60
 #define RTT_LBOUND 0.07
 
+#ifdef CUSTOM_WINDOW_SIZE
+#define INIT_WINDOW_SIZE CUSTOM_WINDOW_SIZE
+#else
 #define INIT_WINDOW_SIZE 50
+#endif
 
 // 一些Flag
 #define NO_FLAG 0
