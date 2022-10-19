@@ -3,6 +3,7 @@ INC_DIR = $(TOP_DIR)/inc
 SRC_DIR = $(TOP_DIR)/src
 BUILD_DIR = $(TOP_DIR)/build
 
+
 CC=gcc
 FLAGS = -pthread -g -ggdb -DDEBUG -I$(INC_DIR)
 OBJS = $(BUILD_DIR)/tju_packet.o \
