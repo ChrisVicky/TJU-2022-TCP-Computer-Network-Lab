@@ -136,7 +136,8 @@ void * send_work_thread(tju_tcp_t* sock){
     while(pthread_mutex_lock(&sock->sending_queue->q_lock)!=0);
     if(!is_empty_q(sock->sending_queue)) {
       int pre = sock->window.wnd_send->swnd;
-      sock->window.wnd_send->swnd = min(sock->window.wnd_send->rwnd, sock->window.wnd_send->con->cwnd);
+// sock->window.wnd_send->swnd = min(sock->window.wnd_send->rwnd, sock->window.wnd_send->con->cwnd);
+			sock->window.wnd_send->swnd = sock->window.wnd_send->rwnd;
       int size = sock->timers->size; 
       int swnd = sock->window.wnd_send->swnd;
       if (size < sock->window.wnd_send->swnd){
