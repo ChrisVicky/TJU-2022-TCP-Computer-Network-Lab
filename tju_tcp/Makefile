@@ -3,9 +3,11 @@ INC_DIR = $(TOP_DIR)/inc
 SRC_DIR = $(TOP_DIR)/src
 BUILD_DIR = $(TOP_DIR)/build
 
+CUSTOM_WINDOW_SIZE=$(if $(INIT_WDS),$(INIT_WDS),50)
 
 CC=gcc
-FLAGS = -pthread -g -ggdb -DDEBUG -I$(INC_DIR)
+FLAGS = -pthread -g -ggdb -DDEBUG -I$(INC_DIR) -DCUSTOM_WINDOW_SIZE=$(CUSTOM_WINDOW_SIZE)
+
 OBJS = $(BUILD_DIR)/tju_packet.o \
 			 $(BUILD_DIR)/kernel.o \
 			 $(BUILD_DIR)/queue.o\
