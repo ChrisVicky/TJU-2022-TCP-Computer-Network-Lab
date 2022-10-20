@@ -1,4 +1,4 @@
-This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022/Arch Linux) (preloaded format=xelatex 2022.8.18)  4 OCT 2022 17:56
+This is XeTeX, Version 3.141592653-2.6-0.999994 (TeX Live 2022/Arch Linux) (preloaded format=xelatex 2022.8.18)  19 OCT 2022 22:18
 entering extended mode
  restricted \write18 enabled.
  file:line:error style messages enabled.
@@ -1079,7 +1079,7 @@ LaTeX Font Info:    Trying to load font information for TS1+txr on input line 7.
  (/usr/share/texmf-dist/tex/latex/txfonts/ts1txr.fd
 File: ts1txr.fd 2000/12/15 v3.1
 )
-LaTeX Font Info:    Calculating math sizes for size <14> on input line 8.
+LaTeX Font Info:    Calculating math sizes for size <14> on input line 10.
  [1
 
 
@@ -1094,50 +1094,97 @@ LaTeX Font Info:    Calculating math sizes for size <14> on input line 8.
 
  (./body.tex (./chapters/chapter1.tex
 第一章
-File: figures/_ubuntu.png Graphic file (type bmp)
-<figures/_ubuntu.png>
+LaTeX Font Info:    Font shape `T1/txr/b/n' in size <12> not available
+(Font)              Font shape `T1/txr/bx/n' tried instead on input line 4.
+File: figures//_ubuntu.png Graphic file (type bmp)
+<figures//_ubuntu.png>
 ) (./chapters/chapter2.tex [1
 
 
 
 ]
 第二章
-File: figures/Flow_10_4.png Graphic file (type bmp)
-<figures/Flow_10_4.png>
+File: figures//result_w1.png Graphic file (type bmp)
+<figures//result_w1.png>
+File: figures//result_w2.png Graphic file (type bmp)
+<figures//result_w2.png>
+File: figures//result_w3.png Graphic file (type bmp)
+<figures//result_w3.png>
 ) (./chapters/chapter3.tex [2
 
-] [3]
+]
 第三章
-LaTeX Font Info:    Font shape `T1/txr/b/n' in size <12> not available
-(Font)              Font shape `T1/txr/bx/n' tried instead on input line 4.
+File: figures//established.png Graphic file (type bmp)
+<figures//established.png>
+File: figures//established_FSM.png Graphic file (type bmp)
+<figures//established_FSM.png>
+[3
 
-LaTeX Warning: Reference `fig:fsm' on page 4 undefined on input line 4.
-
+]
+File: figures//rdt.png Graphic file (type bmp)
+<figures//rdt.png>
+ [4]
 File: figures/CLIENT_FSM.png Graphic file (type bmp)
 <figures/CLIENT_FSM.png>
-
-LaTeX Warning: Reference `fid:client_fsm' on page 4 undefined on input line 18.
-
 File: figures/SERVER_FSM.png Graphic file (type bmp)
 <figures/SERVER_FSM.png>
-[4
-
-] [5]) (./chapters/chapter4.tex [6]
+ [5] [6] [7]
+File: figures//close_FSM.png Graphic file (type bmp)
+<figures//close_FSM.png>
+ [8] [9]
+File: figures//cwnd_FSM.png Graphic file (type bmp)
+<figures//cwnd_FSM.png>
+) (./chapters/chapter4.tex [10]
 第四章
-[7
 
-]) (./chapters/chapter5.tex [8]
+Underfull \hbox (badness 7468) in paragraph at lines 18--19
+[] []\T1/txr/bx/n/12 tju_accept[] \T1/txr/m/n/12 Server \TU/FandolSong-Regular(0)/m/n/12 端 调 用 该 \T1/txr/m/n/12 API\TU/FandolSong-Regular(0)/m/n/12 ，|  从 处 于 \T1/txr/m/n/12 LIS-TEN \TU/FandolSong-Regular(0)/m/n/12 状 态 的 \T1/txr/m/n/12 socket \TU/FandolSong-Regular(0)/m/n/12 的
+ []
+
+[11
+
+]
+File: figures//timer_list.png Graphic file (type bmp)
+<figures//timer_list.png>
+ [12]
+File: figures//queue.png Graphic file (type bmp)
+<figures//queue.png>
+File: figures//tree.png Graphic file (type bmp)
+<figures//tree.png>
+ [13] [14] [15]) (./chapters/chapter5.tex [16]
 第五章
+File: figures//e_server1.png Graphic file (type bmp)
+<figures//e_server1.png>
+File: figures//e_client1.png Graphic file (type bmp)
+<figures//e_client1.png>
+File: figures//RTT_FIG.png Graphic file (type bmp)
+<figures//RTT_FIG.png>
 File: figures//RTT_LOG.png Graphic file (type bmp)
 <figures//RTT_LOG.png>
 File: figures//RECV_LOG.png Graphic file (type bmp)
 <figures//RECV_LOG.png>
-[9
+[17
+
+] [18]
+File: figures//homeserver.png Graphic file (type bmp)
+<figures//homeserver.png>
+File: figures//all_window.png Graphic file (type bmp)
+<figures//all_window.png>
+File: figures//close_test.png Graphic file (type bmp)
+<figures//close_test.png>
+ [19]
+File: figures//conngestion.png Graphic file (type bmp)
+<figures//conngestion.png>
+File: figures//wds.png Graphic file (type bmp)
+<figures//wds.png>
+ [20]
+File: figures//loss.png Graphic file (type bmp)
+<figures//loss.png>
+) (./chapters/chapter6.tex [21] [22]
+第六章
+)) [23
 
 ]
-File: figures//RESULT_WEEK2.png Graphic file (type bmp)
-<figures//RESULT_WEEK2.png>
-)) [10]
 \tf@thm=\write5
 \openout5 = `tjumain.thm'.
 
@@ -1146,28 +1193,16 @@ File: figures//RESULT_WEEK2.png Graphic file (type bmp)
 LaTeX Font Warning: Size substitutions with differences
 (Font)              up to 0.6pt have occurred.
 
-
-LaTeX Warning: There were undefined references.
-
-
-LaTeX Warning: Label(s) may have changed. Rerun to get cross-references right.
-
-
-Package rerunfilecheck Warning: File `tjumain.out' has changed.
-(rerunfilecheck)                Rerun to get outlines right
-(rerunfilecheck)                or use package `bookmark'.
-
-Package rerunfilecheck Info: Checksums for `tjumain.out':
-(rerunfilecheck)             Before: DC78F44A9131B76743A608BFA95D6383;4056
-(rerunfilecheck)             After:  E5FFA181AA5F260A1DF475DCCE7179BB;4167.
+Package rerunfilecheck Info: File `tjumain.out' has not changed.
+(rerunfilecheck)             Checksum: BFC7FF3AA1AD73C4052AB0345966BB92;4666.
  ) 
 Here is how much of TeX's memory you used:
- 23318 strings out of 476156
- 462722 string characters out of 5814963
- 989864 words of memory out of 5000000
- 43650 multiletter control sequences out of 15000+600000
- 540109 words of font info for 208 fonts, out of 8000000 for 9000
+ 23592 strings out of 476156
+ 473654 string characters out of 5814963
+ 994337 words of memory out of 5000000
+ 43902 multiletter control sequences out of 15000+600000
+ 541772 words of font info for 210 fonts, out of 8000000 for 9000
  1348 hyphenation exceptions out of 8191
- 89i,12n,97p,1294b,532s stack positions out of 5000i,500n,10000p,200000b,80000s
+ 89i,11n,97p,1294b,538s stack positions out of 5000i,500n,10000p,200000b,80000s
 
-Output written on tjumain.pdf (13 pages).
+Output written on tjumain.pdf (26 pages).
