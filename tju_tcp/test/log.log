@@ -1,0 +1,44 @@
+
+即将使用如下网络状态进行数据传输: rate:50Mbps delay:6ms delay-distro:0 loss:6% 
+
+====================================================================
+============================开始测试================================
+====================================================================
+[自动测试] 编译提交源码
+> cd /vagrant/tju_tcp && make INIT_WDS=64
+
+[自动测试] 检测到用户提供了自己的测试Makefile, 使用用户的测试Makefile替换自带的版本
+> cp /vagrant/tju_tcp/test_Makefile /vagrant/tju_tcp/test/Makefile
+
+[自动测试] 编译测试源码
+> cd /vagrant/tju_tcp/test && make INIT_WDS=64
+
+============================ 抓包并绘制SeqNum随Time变化图 ================================
+[抓包并绘图] 清理上一次的抓包结果
+[抓包并绘图] 开始在服务端抓包
+[抓包并绘图] 开启服务端和客户端
+[抓包并绘图] 等待6s建立连接
+[抓包并绘图] 建立连接后  设置双方的网络通讯速率 丢包率 和延迟: sudo tcset enp0s8 --rate 50Mbps --delay 6ms --delay-distro 0 --loss 6% --overwrite
+[抓包并绘图] 等待100s 进行双方通信
+[抓包并绘图] 停止抓包
+[抓包并绘图] 关闭双端
+[抓包并绘图] 取消网络设置
+[ test ] cp ./server.event.trace to upper file
+[ test ] cp server.pcap to here
+Open ./log.log
+config  rate:50Mbps delay:6ms delay-distro:0 loss:6% 
+
+Open ./log.log
+config  rate:50Mbps delay:6ms delay-distro:0 loss:6% 
+
+正在使用 /vagrant/tju_tcp/test/client.event.trace Trace文件绘图
+1:181
+绘制成功, 图像位于/vagrant/tju_tcp/figure/wdsabc/Congestion_WindowSize_VS_Time_1_181.png
+绘制成功, 图像位于/vagrant/tju_tcp/figure/wdsabc/Receive_WindowSize_VS_Time_1_49.png
+绘制成功, 图像位于/vagrant/tju_tcp/figure/wdsabc/Send_WindowSize_VS_Time_1_48.png
+绘制成功, 图像位于/vagrant/tju_tcp/figure/wdsabc/AllWindowSize_VS_Time_0.009944_0.009965.png
+绘制成功, 图像位于/vagrant/tju_tcp/figure/wdsabc/RTT_VS_Time_49_48.png
+复制成功, 图像位于/vagrant/tju_tcp/figure/wdsabc/SeqNum_VS_Time.png
+当前 trace 文件复制到, /vagrant/tju_tcp/figure/wdsabc/client.event.trace
+当前 server trace 文件复制到, /vagrant/tju_tcp/figure/wdsabc/server.event.trace
+正在使用 /vagrant/tju_tcp/test/server.event.trace Trace文件绘图
