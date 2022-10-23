@@ -7,6 +7,7 @@
 .
 ├── report 	--> 报告的 Latex 模板等
 ├── code 	--> 执行代码
+├── presentation--> 展示使用PPT
 └── README.md 	--> 本Readme
 ```
 
@@ -51,26 +52,31 @@ code
 * Report
 
 ```
-report
-├── appendix 				--> 附录文件
+report/
+├── appendix
 │   ├── acknowledgements.tex
 │   ├── paperInChinese.tex
 │   └── paperInEnglish.tex
 ├── body.aux
-├── body.tex 				--> 正文部分
-├── chapters 				--> 正文每个章节
+├── body.tex
+├── chapters
 │   ├── chapter1.tex
 │   ├── chapter2.tex
 │   ├── chapter3.tex
 │   ├── chapter4.tex
-│   └── chapter5.tex
-├── clean.py 				--> 清理不必要的 build 文件
-├── preface 				--> 封面文件
+│   ├── chapter5.tex
+│   └── chapter6.tex
+├── clean.py
+├── figures
+├── graph_established.md
+├── graph_fin.md
+├── graph.md
+├── preface
 │   └── cover.tex
-├── references 				--> 参考文献
+├── references
 │   ├── ref.buk
 │   └── reference.bib
-├── setup 				--> 全局 config
+├── setup
 │   ├── format.tex
 │   └── package.tex
 ├── tjumain.aux
@@ -78,16 +84,31 @@ report
 ├── tjumain.out
 ├── tjumain.pdf
 ├── tjumain.synctex.gz
-├── tjumain.tex 			--> root 文件
+├── tjumain.tex
 ├── tjumain.thm
 ├── tjumain.toc
 ├── tjumain.xdv
-├── TJU_report_template_master.pdf 	--> 示例 pdf 
-├── 周报告模板.docx 		
+├── TJU_report_template_master.pdf
+├── 周报告模板.docx
+├── 计网实践_大报告_程子姝_刘锦帆.pdf
 ├── 计网实践_第一周_程子姝_刘锦帆.pdf
 └── 计网实践_第二周_程子姝_刘锦帆.pdf
 
-5 directories, 29 files
+7 directories, 109 files
+```
+
+* Presentation
+
+```
+presentation/
+├── 3threads.md 			--> 流程图
+├── presentation.md 			--> [lookatme](https://github.com/d0c-s4vage/lookatme) Presentation
+├── TCP_overview.md 			--> 流程图
+├── tree.md 				--> 流程图
+├── 汇报.pptx 				--> 汇报 PPT
+└── 项目结构图.png 
+
+0 directories, 6 files
 ```
 
 
