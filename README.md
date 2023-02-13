@@ -1,11 +1,9 @@
 # TJU TCP 
-
 * 天津大学 2022 计算机网络 TCP 课程实践
-* 100 分喵😋
-
-## 文件结构说明
-
-* Structure: 
+* 最终成绩 100 分捏 😋
+---
+* Lab Member：程子姝，刘锦帆
+* Project Structure: 
 ```markdown
 .
 ├── report        --> 报告的 Latex 模板等
