@@ -1,6 +1,6 @@
 # TJU TCP
 
-:warning: **This REPO is NOT an Open Source Repo since it does NOT contain any Liscences**
+:warning: **This REPO is NOT an Open Source Repo since it does NOT contain any Licences**
 
 - 天津大学 2022 计算机网络 TCP 课程实践
 - 最终成绩 100 分捏 😋
